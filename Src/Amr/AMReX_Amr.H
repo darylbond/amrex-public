@@ -12,12 +12,17 @@
 #include <AMReX_Array.H>
 #include <AMReX_Vector.H>
 #include <AMReX_BCRec.H>
+#include <AMReX_VisMF.H>
 
 #include <AMReX_AmrCore.H>
 
 #ifdef USE_PERILLA
 #include <RegionGraph.H>
 #include <Perilla.H>
+#endif
+
+#ifdef BL_HDF5
+#include <AMReX_HDF5.H>
 #endif
 
 namespace amrex {
@@ -249,12 +254,18 @@ public:
 
     //! Write the plot file to be used for visualization.
     virtual void writePlotFile ();
+#ifdef BL_HDF5
+    virtual void writePlotFileHDF5();
+#endif
     int stepOfLastPlotFile () const noexcept {return last_plotfile;}
     //! Write the small plot file to be used for visualization.
     virtual void writeSmallPlotFile ();
     int stepOfLastSmallPlotFile () const noexcept {return last_smallplotfile;}
     //! Write current state into a chk* file.
     virtual void checkPoint ();
+#ifdef BL_HDF5
+    virtual void checkPointHDF5 ();
+#endif
     int stepOfLastCheckPoint () const noexcept {return last_checkpoint;}
 
     const Vector<BoxArray>& getInitialBA() noexcept;
@@ -331,6 +342,13 @@ public:
     void InstallNewDistributionMap (int lev, const DistributionMapping& newdm);
 
     bool UsingPrecreateDirectories () noexcept;
+
+    std::string& getOutputName() { return output_name; }
+    std::ofstream& getOutputStream() { return output_stream; }
+    VisMF::How& getOutputHow() { return output_how; }
+#ifdef BL_HDF5
+  H5& getHDF5() { return output_h5; }
+#endif
 
 protected:
 
@@ -462,6 +480,15 @@ protected:
     Real             loadbalance_max_fac;
 
     bool             bUserStopRequest;
+
+    // output parameters
+    std::string output_name;
+    std::ofstream output_stream;
+    VisMF::How output_how;
+
+#ifdef BL_HDF5
+    H5 output_h5;
+#endif
 
     //
     // The static data ...
