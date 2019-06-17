@@ -361,6 +361,7 @@ protected:
     void checkInput ();
     //! Restart from a checkpoint file.
     void restart (const std::string& filename);
+    void restartHDF5 (const std::string& filename);
     //! Define and initialize coarsest level.
     void defBaseLevel (Real start_time, const BoxArray* lev0_grids = 0, const Vector<int>* pmap = 0);
     //! Define and initialize refined levels.

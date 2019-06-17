@@ -97,6 +97,7 @@ public:
     void writePlotFile(MultiFab& plot_data, std::vector<std::string>& plot_names);
 
 #ifdef BL_HDF5
+  void writeLevelAttrHDF5(H5& h5);
   void writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
     const std::vector<std::string> data_names=std::vector<std::string>());
   void writePlotHDF5(MultiFab& data_mf, const std::vector<std::string> data_names);

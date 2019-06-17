@@ -320,6 +320,50 @@ void AmrLevel::writePlotFile(MultiFab& plot_data,
 
 #ifdef BL_HDF5
 
+void AmrLevel::writeLevelAttrHDF5(H5& h5)
+{
+  // cell spacing
+  const Real* a_dx = geom.CellSize();
+  hid_t realvect_id = makeDoubleVec();
+  double_h5_t vec_dx = writeDoubleVec(a_dx);
+  h5.writeAttribute("vec_dx", vec_dx, realvect_id);
+  h5.writeAttribute("dx", vec_dx.x, H5T_NATIVE_DOUBLE);
+  H5Tclose(realvect_id);
+
+  // refinement ratio
+  hid_t intvect_id = makeIntVec();
+  int rr[BL_SPACEDIM];
+  if (level < parent->finestLevel()) {
+    IntVect ref_ratio = parent->refRatio(level);
+    int* vrr = ref_ratio.getVect();
+    for (int i = 0; i < BL_SPACEDIM; ++i) {
+      rr[i] = vrr[i];
+    }
+  } else {
+    for (int i = 0; i < BL_SPACEDIM; ++i) {
+      rr[i] = 1;
+    }
+  }
+  h5.writeAttribute("vec_ref_ratio", rr, intvect_id);
+  h5.writeAttribute("ref_ratio", rr[0], H5T_NATIVE_INT);
+  H5Tclose(intvect_id);
+
+  // data time stamp
+  double time = parent->cumTime();
+  h5.writeAttribute("time", time, H5T_NATIVE_DOUBLE);
+
+  // problem domain
+  Box bx(geom.Domain());
+  hid_t box_id = makeBox();
+  box_h5_t box = writeBox(bx);
+  h5.writeAttribute("prob_domain", box, box_id);
+
+  RealBox rbx(geom.ProbDomain());
+  hid_t rbox_id = makeRealBox();
+  rbox_h5_t rbox = writeRealBox(rbx);
+  h5.writeAttribute("real_domain", rbox, rbox_id);
+}
+
 void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time, const std::vector<std::string> data_names)
 {
 
@@ -394,111 +438,41 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time, con
     vMString["component_"+num2str(i)] = data_names[i];
   }
 
-  level_attr.saveAttribute(vMInt, vMReal, vMString);
+  level_attr.writeAttribute(vMInt, vMReal, vMString);
 
   // the number of ghost cells saved and output
-#if BL_SPACEDIM == 2
-  int zeros[2] = {0, 0};
-  hid_t intvect_id = makeInt2D();
-  int2d_t gint = fillInt2D(zeros);
-#elif BL_SPACEDIM == 3
-  int zeros[3] = {0, 0, 0};
-  hid_t intvect_id = makeInt3D();
-  int3d_t gint = fillInt3D(zeros);
-#endif
-  level_attr.saveAttribute<>("ghost", gint, intvect_id);
-  level_attr.saveAttribute("outputGhost", gint, intvect_id);
-
-
-
+  int zeros[AMREX_SPACEDIM] = {AMREX_D_DECL(0,0,0)};
+  hid_t intvect_id = makeIntVec();
+  int_h5_t gint = writeIntVec(zeros);
+  level_attr.writeAttribute<>("ghost", gint, intvect_id);
+  level_attr.writeAttribute("outputGhost", gint, intvect_id);
 
   level_attr.closeGroup();
-  //-----------------------------------------------------------------------------------
-
-  //-----------------------------------------------------------------------------------
-  // levels attributes
-
-  // cell spacing
-  const Real* a_dx = geom.CellSize();
-#if BL_SPACEDIM == 2
-  hid_t realvect_id = makeDouble2D();
-  double2d_t vec_dx = fillDouble2D(a_dx);
-#elif BL_SPACEDIM == 3
-  hid_t realvect_id = makeDouble3D();
-  double3d_t vec_dx = fillDouble3D(a_dx);
-#endif
-  h5.saveAttribute("vec_dx", vec_dx, realvect_id);
-  h5.saveAttribute("dx", vec_dx.x, H5T_NATIVE_DOUBLE);
-  H5Tclose(realvect_id);
-
-  // refinement ratio
-  int rr[BL_SPACEDIM];
-  if (level < parent->finestLevel()) {
-    IntVect ref_ratio = parent->refRatio(level);
-    int* vrr = ref_ratio.getVect();
-    for (int i = 0; i < BL_SPACEDIM; ++i) {
-      rr[i] = vrr[i];
-    }
-  } else {
-    for (int i = 0; i < BL_SPACEDIM; ++i) {
-      rr[i] = 1;
-    }
-  }
-  h5.saveAttribute("vec_ref_ratio", rr, intvect_id);
-  h5.saveAttribute("ref_ratio", rr[0], H5T_NATIVE_INT);
-  H5Tclose(intvect_id);
 
   // data time stamp
-  h5.saveAttribute("time", time, H5T_NATIVE_DOUBLE);
-
-  // problem domain
-  Box b3(geom.Domain());
-#if BL_SPACEDIM == 1
-  amrex::Abort("writePlotFileHDF5 not implemented in 1d.");
-#elif BL_SPACEDIM == 2
-  hid_t box_id = makeBox2D();
-  box2d_t box = fillBox2D(b3);
-#elif BL_SPACEDIM == 3
-  hid_t box_id = makeBox3D();
-  box3d_t box = fillBox3D(b3);
-#endif
-  h5.saveAttribute("prob_domain", box, box_id);
+  h5.writeAttribute("time", time, H5T_NATIVE_DOUBLE);
+  //-----------------------------------------------------------------------------------
 
   // processors
   Vector<int> pid(sortedGrids.size());
   for (int b = 0; b < sortedGrids.size(); ++b) {
     pid[b] = sortedProcs[b];
   }
-  h5.saveType("Processors", {(hsize_t)pid.size()}, pid, H5T_NATIVE_INT);
+  h5.writeType("Processors", {(hsize_t)pid.size()}, pid, H5T_NATIVE_INT);
 
   // boxes
   int vbCount = 0;
-#if BL_SPACEDIM == 2
-  Vector<box2d_t> boxes(sortedGrids.size());
+  hid_t box_id = makeBox();
+  std::vector<box_h5_t> boxes(sortedGrids.size());
   for (int b(0); b < sortedGrids.size(); ++b) {
-    boxes[vbCount].lo_i = sortedGrids[b].smallEnd(0);
-    boxes[vbCount].lo_j = sortedGrids[b].smallEnd(1);
-    boxes[vbCount].hi_i = sortedGrids[b].bigEnd(0);
-    boxes[vbCount].hi_j = sortedGrids[b].bigEnd(1);
+    writeBox(sortedGrids[b], boxes[vbCount]);
     ++vbCount;
   }
-#elif BL_SPACEDIM == 3
-  Vector<box3d_t> boxes(sortedGrids.size());
-  for (int b(0); b < sortedGrids.size(); ++b) {
-    boxes[vbCount].lo_i = sortedGrids[b].smallEnd(0);
-    boxes[vbCount].lo_j = sortedGrids[b].smallEnd(1);
-    boxes[vbCount].lo_k = sortedGrids[b].smallEnd(2);
-    boxes[vbCount].hi_i = sortedGrids[b].bigEnd(0);
-    boxes[vbCount].hi_j = sortedGrids[b].bigEnd(1);
-    boxes[vbCount].hi_k = sortedGrids[b].bigEnd(2);
-    ++vbCount;
-  }
-#endif
-  h5.saveType("boxes", {(hsize_t)boxes.size()}, boxes, box_id);
+  h5.writeType("boxes", {(hsize_t)boxes.size()}, boxes, box_id);
   H5Tclose(box_id);
 
   // offsets
-  h5.saveType("data:offsets=0", {(hsize_t)offsets.size()}, offsets,
+  h5.writeType("data:offsets=0", {(hsize_t)offsets.size()}, offsets,
                      H5T_NATIVE_LLONG);
 
   //-----------------------------------------------------------------------------------
@@ -524,7 +498,7 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time, con
   std::vector<hsize_t> offset = {(hsize_t)procOffsets[myProc]};
 
   // then write
-  h5.saveSlab("data:datatype=0", full_dims, local_dims, offset, a_buffer,
+  h5.writeSlab("data:datatype=0", full_dims, local_dims, offset, a_buffer,
                      H5T_NATIVE_DOUBLE);
 
   return;
@@ -550,7 +524,7 @@ void AmrLevel::writePlotHDF5(MultiFab& data_mf,
     vMReal["testReal"] = 0.0;
     vMString["testString"] = "test string";
     H5 global = h5.createGroup("Chombo_global");
-    global.saveAttribute(vMInt, vMReal, vMString);
+    global.writeAttribute(vMInt, vMReal, vMString);
     global.closeGroup();
 
     vMInt.clear();
@@ -572,12 +546,13 @@ void AmrLevel::writePlotHDF5(MultiFab& data_mf,
       std::string label(labelChSt);
       vMString[label] = data_names[ivar];
     }
-    h5.saveAttribute(vMInt, vMReal, vMString);
+    h5.writeAttribute(vMInt, vMReal, vMString);
   }
 
   // create a group for all of the levels data
   H5 level_grp = h5.createGroup("/level_" + num2str(level));
 
+  writeLevelAttrHDF5(level_grp);
   writeMultiFabHDF5(level_grp, &data_mf, parent->cumTime());
 
   level_grp.closeGroup();
@@ -763,17 +738,12 @@ AmrLevel::checkPointHDF5 (H5& h5)
   // header stuff
   if (level == 0) {
 
-    // generate and populate global
-    vMInt["SpaceDim"] = amrex::SpaceDim;
-    H5 global = h5.createGroup("global");
-    global.saveAttribute(vMInt, vMReal, vMString);
-    global.closeGroup();
-
     vMInt.clear();
     vMReal.clear();
     vMString.clear();
 
     // populate the root folder
+    vMInt["SpaceDim"] = amrex::SpaceDim;
     vMReal["time"] = parent->cumTime();
     vMInt["iteration"] = parent->levelSteps(level);
     vMInt["max_level"] = parent->finestLevel();
@@ -781,19 +751,20 @@ AmrLevel::checkPointHDF5 (H5& h5)
 
     vMInt["num_levels"] = parent->maxLevel();
     vMInt["num_state"] = desc_lst.size();
-    h5.saveAttribute(vMInt, vMReal, vMString);
+    h5.writeAttribute(vMInt, vMReal, vMString);
   }
 
 
   // create a group for all of the levels data
   H5 level_grp = h5.createGroup("/level_" + num2str(level));
+  writeLevelAttrHDF5(level_grp);
 
   int num_state = (int) desc_lst.size();
-  level_grp.saveAttribute("num_state", num_state, H5T_NATIVE_INT);
+  level_grp.writeAttribute("num_state", num_state, H5T_NATIVE_INT);
 
   // time step size
   Real a_dt(parent->dtLevel(level));
-  level_grp.saveAttribute("dt", a_dt, H5T_NATIVE_DOUBLE);
+  level_grp.writeAttribute("dt", a_dt, H5T_NATIVE_DOUBLE);
 
   // do we have old/new data?
   hbool_t have_old = false;
@@ -810,8 +781,8 @@ AmrLevel::checkPointHDF5 (H5& h5)
     }
   }
 
-  level_grp.saveAttribute("have_old", have_old, H5T_NATIVE_HBOOL);
-  level_grp.saveAttribute("have_new", have_new, H5T_NATIVE_HBOOL);
+  level_grp.writeAttribute("have_old", have_old, H5T_NATIVE_HBOOL);
+  level_grp.writeAttribute("have_new", have_new, H5T_NATIVE_HBOOL);
   H5 state_old, state_new;
 
   if (have_old) {

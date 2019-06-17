@@ -2,104 +2,197 @@
 
 #ifdef BL_HDF5
 
-hid_t makeBox2D() {
-  hid_t box_id = H5Tcreate(H5T_COMPOUND, sizeof(box2d_t));
-  H5Tinsert(box_id, "lo_i", HOFFSET(box2d_t, lo_i), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "lo_j", HOFFSET(box2d_t, lo_j), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "hi_i", HOFFSET(box2d_t, hi_i), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "hi_j", HOFFSET(box2d_t, hi_j), H5T_NATIVE_INT);
+hid_t makeBox() {
+  hid_t box_id = H5Tcreate(H5T_COMPOUND, sizeof(box_h5_t));
+#if BL_SPACEDIM >= 1
+  H5Tinsert(box_id, "lo_i", HOFFSET(box_h5_t, lo_i), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 2
+  H5Tinsert(box_id, "lo_j", HOFFSET(box_h5_t, lo_j), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 3
+  H5Tinsert(box_id, "lo_k", HOFFSET(box_h5_t, lo_k), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 1
+  H5Tinsert(box_id, "hi_i", HOFFSET(box_h5_t, hi_i), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 2
+  H5Tinsert(box_id, "hi_j", HOFFSET(box_h5_t, hi_j), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 3
+  H5Tinsert(box_id, "hi_k", HOFFSET(box_h5_t, hi_k), H5T_NATIVE_INT);
+#endif
+
   return box_id;
 }
 
-hid_t makeBox3D() {
-  hid_t box_id = H5Tcreate(H5T_COMPOUND, sizeof(box3d_t));
-  H5Tinsert(box_id, "lo_i", HOFFSET(box3d_t, lo_i), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "lo_j", HOFFSET(box3d_t, lo_j), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "lo_k", HOFFSET(box3d_t, lo_k), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "hi_i", HOFFSET(box3d_t, hi_i), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "hi_j", HOFFSET(box3d_t, hi_j), H5T_NATIVE_INT);
-  H5Tinsert(box_id, "hi_k", HOFFSET(box3d_t, hi_k), H5T_NATIVE_INT);
-  return box_id;
-}
-
-box2d_t fillBox2D(Box b) {
-  box2d_t box;
+box_h5_t writeBox(const Box &b) {
+  box_h5_t box;
+#if BL_SPACEDIM >= 1
   box.lo_i = b.smallEnd(0);
-  box.lo_j = b.smallEnd(1);
   box.hi_i = b.bigEnd(0);
-  box.hi_j = b.bigEnd(1);
-  return box;
-}
-
-box3d_t fillBox3D(Box b) {
-  box3d_t box;
-  box.lo_i = b.smallEnd(0);
+#endif
+#if BL_SPACEDIM >= 2
   box.lo_j = b.smallEnd(1);
+  box.hi_j = b.bigEnd(1);
+#endif
+#if BL_SPACEDIM >= 3
   box.lo_k = b.smallEnd(2);
-  box.hi_i = b.bigEnd(0);
-  box.hi_j = b.bigEnd(1);
   box.hi_k = b.bigEnd(2);
+#endif
   return box;
 }
 
-hid_t makeInt2D() {
-  hid_t intvect_id = H5Tcreate(H5T_COMPOUND, sizeof(int2d_t));
-  H5Tinsert(intvect_id, "intvecti", HOFFSET(int2d_t, i), H5T_NATIVE_INT);
-  H5Tinsert(intvect_id, "intvectj", HOFFSET(int2d_t, j), H5T_NATIVE_INT);
+void writeBox(const Box &b, box_h5_t &box) {
+#if BL_SPACEDIM >= 1
+  box.lo_i = b.smallEnd(0);
+  box.hi_i = b.bigEnd(0);
+#endif
+#if BL_SPACEDIM >= 2
+  box.lo_j = b.smallEnd(1);
+  box.hi_j = b.bigEnd(1);
+#endif
+#if BL_SPACEDIM >= 3
+  box.lo_k = b.smallEnd(2);
+  box.hi_k = b.bigEnd(2);
+#endif
+  return;
+}
+
+Box readBox(box_h5_t &box) {
+  IntVect lo(AMREX_D_DECL(box.lo_i, box.lo_j, box.lo_k));
+  IntVect hi(AMREX_D_DECL(box.hi_i, box.hi_j, box.hi_k));
+  Box b(lo, hi);
+  return b;
+}
+
+hid_t makeRealBox() {
+  hid_t box_id = H5Tcreate(H5T_COMPOUND, sizeof(rbox_h5_t));
+#if BL_SPACEDIM >= 1
+  H5Tinsert(box_id, "lo_x", HOFFSET(rbox_h5_t, lo_x), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 2
+  H5Tinsert(box_id, "lo_y", HOFFSET(rbox_h5_t, lo_y), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 3
+  H5Tinsert(box_id, "lo_z", HOFFSET(rbox_h5_t, lo_z), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 1
+  H5Tinsert(box_id, "hi_x", HOFFSET(rbox_h5_t, hi_x), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 2
+  H5Tinsert(box_id, "hi_y", HOFFSET(rbox_h5_t, hi_y), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 3
+  H5Tinsert(box_id, "hi_z", HOFFSET(rbox_h5_t, hi_z), H5T_NATIVE_DOUBLE);
+#endif
+
+  return box_id;
+}
+
+rbox_h5_t writeRealBox(const RealBox &b) {
+  rbox_h5_t box;
+#if BL_SPACEDIM >= 1
+  box.lo_x = b.lo(0);
+  box.hi_x = b.hi(0);
+#endif
+#if BL_SPACEDIM >= 2
+  box.lo_y = b.lo(1);
+  box.hi_y = b.hi(1);
+#endif
+#if BL_SPACEDIM >= 3
+  box.lo_z = b.lo(2);
+  box.hi_z = b.hi(2);
+#endif
+  return box;
+}
+
+RealBox readRealBox(rbox_h5_t &box) {
+  std::array<Real,AMREX_SPACEDIM> lo = {AMREX_D_DECL(box.lo_x, box.lo_y, box.lo_z)};
+  std::array<Real, AMREX_SPACEDIM> hi = {AMREX_D_DECL(box.hi_x, box.hi_y, box.hi_z)};
+  RealBox b(lo, hi);
+  return b;
+}
+
+
+hid_t makeIntVec() {
+  hid_t intvect_id = H5Tcreate(H5T_COMPOUND, sizeof(int_h5_t));
+#if BL_SPACEDIM >= 1
+  H5Tinsert(intvect_id, "intvecti", HOFFSET(int_h5_t, i), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 2
+  H5Tinsert(intvect_id, "intvectj", HOFFSET(int_h5_t, j), H5T_NATIVE_INT);
+#endif
+#if BL_SPACEDIM >= 3
+  H5Tinsert(intvect_id, "intvectk", HOFFSET(int_h5_t, k), H5T_NATIVE_INT);
+#endif
   return intvect_id;
 }
 
-hid_t makeInt3D() {
-  hid_t intvect_id = H5Tcreate(H5T_COMPOUND, sizeof(int3d_t));
-  H5Tinsert(intvect_id, "intvecti", HOFFSET(int3d_t, i), H5T_NATIVE_INT);
-  H5Tinsert(intvect_id, "intvectj", HOFFSET(int3d_t, j), H5T_NATIVE_INT);
-  H5Tinsert(intvect_id, "intvectk", HOFFSET(int3d_t, k), H5T_NATIVE_INT);
-  return intvect_id;
-}
-
-int2d_t fillInt2D(const int* in) {
-  int2d_t i;
+int_h5_t writeIntVec(const int* in) {
+  int_h5_t i;
+#if BL_SPACEDIM >= 1
   i.i = in[0];
+#endif
+#if BL_SPACEDIM >= 2
   i.j = in[1];
-  return i;
-}
-
-int3d_t fillInt3D(const int* in) {
-  int3d_t i;
-  i.i = in[0];
-  i.j = in[1];
+#endif
+#if BL_SPACEDIM >= 3
   i.k = in[2];
+#endif
   return i;
 }
 
-hid_t makeDouble2D() {
-  hid_t realvect_id = H5Tcreate(H5T_COMPOUND, sizeof(double2d_t));
-  H5Tinsert(realvect_id, "x", HOFFSET(double2d_t, x), H5T_NATIVE_DOUBLE);
-  H5Tinsert(realvect_id, "y", HOFFSET(double2d_t, y), H5T_NATIVE_DOUBLE);
+void readIntVec(int_h5_t &in, int *out) {
+#if BL_SPACEDIM >= 1
+  out[0] = in.i;
+#endif
+#if BL_SPACEDIM >= 2
+  out[1] = in.j;
+#endif
+#if BL_SPACEDIM >= 3
+  out[2] = in.k;
+#endif
+}
+
+hid_t makeDoubleVec() {
+hid_t realvect_id = H5Tcreate(H5T_COMPOUND, sizeof(double_h5_t));
+#if BL_SPACEDIM >= 1
+  H5Tinsert(realvect_id, "x", HOFFSET(double_h5_t, x), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 2
+  H5Tinsert(realvect_id, "y", HOFFSET(double_h5_t, y), H5T_NATIVE_DOUBLE);
+#endif
+#if BL_SPACEDIM >= 3
+  H5Tinsert(realvect_id, "z", HOFFSET(double_h5_t, z), H5T_NATIVE_DOUBLE);
+#endif
   return realvect_id;
 }
 
-hid_t makeDouble3D() {
-  hid_t realvect_id = H5Tcreate(H5T_COMPOUND, sizeof(double3d_t));
-  H5Tinsert(realvect_id, "x", HOFFSET(double3d_t, x), H5T_NATIVE_DOUBLE);
-  H5Tinsert(realvect_id, "y", HOFFSET(double3d_t, y), H5T_NATIVE_DOUBLE);
-  H5Tinsert(realvect_id, "z", HOFFSET(double3d_t, z), H5T_NATIVE_DOUBLE);
-  return realvect_id;
-}
-
-double2d_t fillDouble2D(const double* in) {
-  double2d_t vec;
+double_h5_t writeDoubleVec(const double* in) {
+  double_h5_t vec;
+#if BL_SPACEDIM >= 1
   vec.x = in[0];
+#endif
+#if BL_SPACEDIM >= 2
   vec.y = in[1];
-  return vec;
-}
-
-double3d_t fillDouble3D(const double* in) {
-  double3d_t vec;
-  vec.x = in[0];
-  vec.y = in[1];
+#endif
+#if BL_SPACEDIM >= 3
   vec.z = in[2];
+#endif
   return vec;
+}
+
+void readDoubleVec(double_h5_t &in, double *out) {
+#if BL_SPACEDIM >= 1
+  out[0] = in.x;
+#endif
+#if BL_SPACEDIM >= 2
+  out[1] = in.y;
+#endif
+#if BL_SPACEDIM >= 3
+  out[2] = in.z;
+#endif
 }
 
 //==================================================================================
@@ -142,7 +235,7 @@ H5 H5::createGroup(const std::string name) {
 
 void H5::closeGroup() { H5Gclose(obj); }
 
-herr_t H5::saveAttribute(std::map<std::string, int>& m_int,
+herr_t H5::writeAttribute(std::map<std::string, int>& m_int,
                          std::map<std::string, double>& m_real,
                          std::map<std::string, std::string>& m_string) {
   H5E_auto_t efunc;
@@ -162,8 +255,7 @@ herr_t H5::saveAttribute(std::map<std::string, int>& m_int,
       attr = H5Acreate2(obj, p->first.c_str(), H5Ttype, aid, H5P_DEFAULT,     \
                         H5P_DEFAULT);                                         \
       if (attr < 0) {                                                         \
-        std::cerr << " Problem writing attribute " << p->first.c_str()        \
-                  << std::endl;                                               \
+        amrex::Abort(" Problem writing attribute " + p->first);       \
       }                                                                       \
     }                                                                         \
     H5Eset_auto2(H5E_DEFAULT, efunc, edata);                                  \
@@ -190,8 +282,7 @@ herr_t H5::saveAttribute(std::map<std::string, int>& m_int,
       attr = H5Acreate2(obj, p->first.c_str(), s_type, aid, H5P_DEFAULT,
                         H5P_DEFAULT);
       if (attr < 0) {
-        std::cerr << " Problem writing attribute " << p->first.c_str()
-                  << std::endl;
+        amrex::Abort(" Problem writing attribute " + p->first);
       }
     }
     H5Eset_auto2(H5E_DEFAULT, efunc, edata);
@@ -206,7 +297,7 @@ herr_t H5::saveAttribute(std::map<std::string, int>& m_int,
   return 0;
 }
 
-void H5::saveString(const std::string name, const std::string& data) {
+void H5::writeString(const std::string name, const std::string& data) {
   // write a single string to obj
 
   hid_t type, space, dset;
@@ -228,7 +319,7 @@ void H5::saveString(const std::string name, const std::string& data) {
   return;
 }
 
-void H5::saveString(const std::string name,
+void H5::writeString(const std::string name,
                     const std::vector<std::string>& data) {
   // write a list of strings
   // all strings must be the same length

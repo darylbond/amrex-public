@@ -4,60 +4,94 @@
 #ifdef BL_HDF5
 
 #include <AMReX_Box.H>
+#include <AMReX_RealBox.H>
 #include <hdf5.h>
 
 using namespace amrex;
 
 typedef struct {
+#if BL_SPACEDIM >= 1
   double x;
+#endif
+#if BL_SPACEDIM >= 2
   double y;
+#endif
+#if BL_SPACEDIM >= 3
   double z;
-} double3d_t;
+#endif
+} double_h5_t;
 
 typedef struct {
+#if BL_SPACEDIM >= 1
   int i;
+#endif
+#if BL_SPACEDIM >= 2
   int j;
+#endif
+#if BL_SPACEDIM >= 3
   int k;
-} int3d_t;
+#endif
+} int_h5_t;
 
 typedef struct {
+#if BL_SPACEDIM >= 1
   int lo_i;
+#endif
+#if BL_SPACEDIM >= 2
   int lo_j;
+#endif
+#if BL_SPACEDIM >= 3
   int lo_k;
+#endif
+#if BL_SPACEDIM >= 1
   int hi_i;
+#endif
+#if BL_SPACEDIM >= 2
   int hi_j;
+#endif
+#if BL_SPACEDIM >= 3
   int hi_k;
-} box3d_t;
+#endif
+} box_h5_t;
 
 typedef struct {
-  double x;
-  double y;
-} double2d_t;
+#if BL_SPACEDIM >= 1
+  double lo_x;
+#endif
+#if BL_SPACEDIM >= 2
+  double lo_y;
+#endif
+#if BL_SPACEDIM >= 3
+  double lo_z;
+#endif
+#if BL_SPACEDIM >= 1
+  double hi_x;
+#endif
+#if BL_SPACEDIM >= 2
+  double hi_y;
+#endif
+#if BL_SPACEDIM >= 3
+  double hi_z;
+#endif
+} rbox_h5_t;
 
-typedef struct {
-  int i;
-  int j;
-} int2d_t;
 
-typedef struct {
-  int lo_i;
-  int lo_j;
-  int hi_i;
-  int hi_j;
-} box2d_t;
+hid_t makeBox();
+box_h5_t writeBox(const Box &b);
+void writeBox(const Box &b, box_h5_t &box);
+Box readBox(box_h5_t &b);
 
-hid_t makeBox2D();
-hid_t makeBox3D();
-box2d_t fillBox2D(Box b);
-box3d_t fillBox3D(Box b);
-hid_t makeInt2D();
-hid_t makeInt3D();
-int2d_t fillInt2D(const int* in);
-int3d_t fillInt3D(const int* in);
-hid_t makeDouble2D();
-hid_t makeDouble3D();
-double2d_t fillDouble2D(const double* in);
-double3d_t fillDouble3D(const double* in);
+hid_t makeRealBox();
+rbox_h5_t writeRealBox(const RealBox &b);
+RealBox readRealBox(rbox_h5_t &b);
+
+hid_t makeIntVec();
+int_h5_t writeIntVec(const int* in);
+void readIntVec(int_h5_t &in, int *out);
+
+hid_t makeDoubleVec();
+double_h5_t writeDoubleVec(const double* in);
+void readDoubleVec(double_h5_t &in, double* out);
 
 class H5 {
  public:
@@ -81,12 +115,16 @@ class H5 {
 
   // compound types
   template <class T>
-  void saveAttribute(const std::string& vName, T& vData, long H5Ttype) {
+  void writeAttribute(const std::string& vName, T& vData, long H5Ttype) {
     hid_t aid = H5Screate(H5S_SCALAR);
-    hid_t attr =
-        H5Acreate2(obj, vName.c_str(), H5Ttype, aid, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t attr;
+    if (H5Aexists(obj, vName.c_str())) {
+      attr = H5Aopen(obj, vName.c_str(),H5P_DEFAULT);
+    } else {
+      attr = H5Acreate2(obj, vName.c_str(), H5Ttype, aid, H5P_DEFAULT, H5P_DEFAULT);
+    }
     if (attr < 0) {
-      std::cerr << " Problem writing attribute " << vName.c_str() << std::endl;
+      amrex::Abort(" Problem writing attribute " + vName);
     }
     status = H5Awrite(attr, H5Ttype, &vData);
     H5Sclose(aid);
@@ -98,9 +136,11 @@ class H5 {
     herr_t ret;
     // check if the attribute exists
     ret = H5Aexists(obj, vName.c_str());
+    if (ret = 0) {
+      amrex::Abort(" Attribute " + vName + "does not exist");
+    }
     if (ret < 0) {
-      std::cerr << " Problem writing attribute " << vName.c_str() << std::endl;
-      return ret;
+      amrex::Abort(" Problem reading attribute " + vName);
     }
 
     // open the attribute
@@ -116,7 +156,7 @@ class H5 {
   }
 
   template <class T>
-  void saveType(const std::string name, const std::vector<hsize_t>& dims,
+  void writeType(const std::string name, const std::vector<hsize_t>& dims,
                 const std::vector<T>& data, long H5Ttype) {
     hid_t space, dset;
     hid_t plist;
@@ -140,7 +180,7 @@ class H5 {
   }
 
   template <class T>
-  void saveType(const std::string name, const std::vector<hsize_t>& dims,
+  void writeType(const std::string name, const std::vector<hsize_t>& dims,
                 T* data, long H5Ttype) {
     hid_t space, dset;
     hid_t plist;
@@ -164,7 +204,7 @@ class H5 {
   }
 
   template <class T>
-  void saveSlab(const std::string name, const std::vector<hsize_t>& full_dims,
+  void writeSlab(const std::string name, const std::vector<hsize_t>& full_dims,
                 const std::vector<hsize_t>& local_dims,
                 const std::vector<hsize_t>& offset, std::vector<T>& data,
                 hid_t type) {
@@ -201,12 +241,12 @@ class H5 {
     H5Dclose(dset);
   }
 
-  herr_t saveAttribute(std::map<std::string, int>& m_int,
+  herr_t writeAttribute(std::map<std::string, int>& m_int,
                        std::map<std::string, double>& m_real,
                        std::map<std::string, std::string>& m_string);
 
-  void saveString(const std::string name, const std::string& data);
-  void saveString(const std::string name, const std::vector<std::string>& data);
+  void writeString(const std::string name, const std::string& data);
+  void writeString(const std::string name, const std::vector<std::string>& data);
 };
 
 #endif
