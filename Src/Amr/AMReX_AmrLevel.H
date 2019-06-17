@@ -15,6 +15,7 @@
 #include <AMReX_StateDescriptor.H>
 #include <AMReX_StateData.H>
 #include <AMReX_VisMF.H>
+#include <AMReX_Vector.H>
 #ifdef AMREX_USE_EB
 #include <AMReX_EBSupport.H>
 #include <AMReX_EBInterpolater.H>
@@ -97,9 +98,13 @@ public:
     void writePlotFile(MultiFab& plot_data, std::vector<std::string>& plot_names);
 
 #ifdef BL_HDF5
+  void updateSortedGridDistributions();
+  void getSortedDataDistributions(MultiFab* data_mf,
+        Vector<unsigned long long>& offsets, Vector<unsigned long long>& procOffsets,
+        Vector<unsigned long long>& procBufferSize);
   void writeLevelAttrHDF5(H5& h5);
   void writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
-    const std::vector<std::string> data_names=std::vector<std::string>());
+    const std::vector<std::string> data_names=std::vector<std::string>(), int id=0);
   void writePlotHDF5(MultiFab& data_mf, const std::vector<std::string> data_names);
 #endif
 
@@ -124,7 +129,9 @@ public:
                              bool               dump_old = true);
 #ifdef BL_HDF5
     void checkPointHDF5 (H5& h5);
+    virtual void restartHDF5 (Amr& papa, H5& h5);
 #endif
+
     //! Do pre-checkpoint work to avoid synchronizations while writing the amr hierarchy
     virtual void checkPointPre ();
     //! Do post-checkpoint work to avoid synchronizations while writing the amr hierarchy
@@ -466,6 +473,13 @@ protected:
     bool                  levelDirectoryCreated;    // for checkpoints and plotfiles
 
     std::unique_ptr<FabFactory<FArrayBox> > m_factory;
+
+
+#ifdef BL_HDF5
+    std::map<int, Vector<Box> > gridMap; // = {proc_id:[boxes], ...}
+    BoxArray sortedGrids;
+    Vector<int> sortedProcs;
+#endif
 
 private:
 

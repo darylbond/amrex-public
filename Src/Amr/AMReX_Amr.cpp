@@ -1511,290 +1511,6 @@ Amr::FinalizeInit (Real              strt_time,
 }
 
 void
-Amr::restartHDF5 (const std::string& filename)
-{
-}
-/*
-  BL_PROFILE_REGION_START("Amr::restartHDF5()");
-  BL_PROFILE("Amr::restartHDF5()");
-
-  which_level_being_advanced = -1;
-
-  Real dRestartTime0 = amrex::second();
-
-  if (verbose > 0) {
-      amrex::Print() << "restarting calculation from file: " << filename << "\n";
-  }
-
-  if (record_run_info && ParallelDescriptor::IOProcessor()) {
-      runlog << "RESTART from file = " << filename << '\n';
-  }
-  //
-  // Init problem dependent data.
-  //
-  int linit = false;
-
-  readProbinFile(linit);
-  //
-  // Start calculation from given restart file.
-  //
-  if (record_run_info && ParallelDescriptor::IOProcessor()) {
-      runlog << "RESTART from file = " << filename << '\n';
-  }
-
-  //
-  // Open the checkpoint header file for reading.
-  //
-
-  H5 h5;
-
-  h5.openFile(filename);
-
-  //
-  // Read global data.
-  //
-
-  // spatial dimensions
-  int spdim;
-  h5.readAttribute("SpaceDim", spdim, H5T_NATIVE_INT);
-
-  if (spdim != AMREX_SPACEDIM)
-  {
-      amrex::ErrorStream() << "Amr::restart(): bad spacedim = " << spdim << '\n';
-      amrex::Abort();
-  }
-
-  h5.readAttribute("SpaceDim", cumtime, H5T_NATIVE_DOUBLE);
-  h5.readAttribute("max_level", finest_level, H5T_NATIVE_DOUBLE);
-
-  Vector<Box> inputs_domain(max_level+1);
-  for (int lev = 0; lev <= max_level; ++lev)
-  {
-      Box bx(Geom(lev).Domain().smallEnd(),Geom(lev).Domain().bigEnd());
-     inputs_domain[lev] = bx;
-  }
-
-  if (max_level >= finest_level) {
-
-    for (int i=0; i<= finest_level; ++i) {
-      H5 level_grp = h5.openGroup("level_"+num2str(i));
-
-      // problem domain (logical)
-      hid_t box_id = makeBox();
-      box_h5_t box;
-      level_grp.readAttribute("prob_domain", box, box_id);
-      Box bx = readBox(box);
-      H5Tclose(box);
-
-      // problem domain (real)
-      hid_t rbox_id = makeRealBox();
-      rbox_h5_t rbox;
-      level_grp.readAttribute("real_domain", rbox, rbox_id);
-      RealBox rb = readRealBox(rbox);
-      H5Tclose(rbox);
-
-      Geometry& geom = Geom(i);
-      geom.define(bx, &rb);
-    }
-
-
-
-     for (int i(0); i <= finest_level; ++i) { is >> Geom(i);      }
-     for (int i(0); i <  finest_level; ++i) { is >> ref_ratio[i]; }
-     for (int i(0); i <= finest_level; ++i) { is >> dt_level[i];  }
-
-     if (new_checkpoint_format)
-     {
-         for (int i(0); i <= finest_level; ++i) { is >> dt_min[i]; }
-     }
-     else
-     {
-         for (int i(0); i <= finest_level; ++i) { dt_min[i] = dt_level[i]; }
-     }
-
-     Vector<int>  n_cycle_in;
-     n_cycle_in.resize(finest_level+1);
-     for (int i(0); i <= finest_level; ++i) { is >> n_cycle_in[i]; }
-     bool any_changed = false;
-
-     for (int i(0); i <= finest_level; ++i) {
-         if (n_cycle[i] != n_cycle_in[i]) {
-             any_changed = true;
-             if (verbose > 0) {
-                 amrex::Print() << "Warning: n_cycle has changed at level " << i <<
-                     " from " << n_cycle_in[i] << " to " << n_cycle[i] << "\n";
-             }
-         }
-     }
-
-     // If we change n_cycle then force a full regrid from level 0 up
-     if (max_level > 0 && any_changed)
-     {
-         level_count[0] = regrid_int[0];
-         if (verbose > 0) {
-             amrex::Print() << "Warning: This forces a full regrid \n";
-         }
-     }
-
-
-     for (int i(0); i <= finest_level; ++i) { is >> level_steps[i]; }
-     for (int i(0); i <= finest_level; ++i) { is >> level_count[i]; }
-
-     //
-     // Set bndry conditions.
-     //
-     if (max_level > finest_level)
-     {
-         for (int i(finest_level + 1); i <= max_level; ++i)
-         {
-             dt_level[i]    = dt_level[i-1]/n_cycle[i];
-             level_steps[i] = n_cycle[i]*level_steps[i-1];
-             level_count[i] = 0;
-         }
-
-         // This is just an error check
-         if ( ! sub_cycle)
-         {
-             for (int i(1); i <= finest_level; ++i)
-             {
-                 if (dt_level[i] != dt_level[i-1]) {
-                    amrex::Error("restart: must have same dt at all levels if not subcycling");
-                 }
-             }
-         }
-     }
-
-     if (regrid_on_restart && max_level > 0)
-     {
-         if (regrid_int[0] > 0) {
-             level_count[0] = regrid_int[0];
-         } else {
-             amrex::Error("restart: can't have regrid_on_restart and regrid_int <= 0");
-         }
-     }
-
-     checkInput();
-     //
-     // Read levels.
-     //
-     for (int lev(0); lev <= finest_level; ++lev)
-     {
-         amr_level[lev].reset((*levelbld)());
-         amr_level[lev]->restart(*this, is);
-         this->SetBoxArray(lev, amr_level[lev]->boxArray());
-         this->SetDistributionMap(lev, amr_level[lev]->DistributionMap());
-     }
-     //
-     // Build any additional data structures.
-     //
-     for (int lev = 0; lev <= finest_level; lev++) {
-         amr_level[lev]->post_restart();
-     }
-
-  } else {
-
-     if (ParallelDescriptor::IOProcessor()) {
-        amrex::Warning("Amr::restart(): max_level is lower than before");
-     }
-
-     int new_finest_level = std::min(max_level,finest_level);
-
-     finest_level = new_finest_level;
-
-     // These are just used to hold the extra stuff we have to read in.
-     Geometry   geom_dummy;
-     Real       real_dummy;
-     int         int_dummy;
-     IntVect intvect_dummy;
-
-     for (int i(0)            ; i <= max_level; ++i) { is >> Geom(i); }
-     for (int i(max_level + 1); i <= finest_level   ; ++i) { is >> geom_dummy; }
-
-     for (int i(0)        ; i <  max_level; ++i) { is >> ref_ratio[i]; }
-     for (int i(max_level); i <  finest_level   ; ++i) { is >> intvect_dummy; }
-
-     for (int i(0)            ; i <= max_level; ++i) { is >> dt_level[i]; }
-     for (int i(max_level + 1); i <= finest_level   ; ++i) { is >> real_dummy; }
-
-     if (new_checkpoint_format) {
-         for (int i(0)            ; i <= max_level; ++i) { is >> dt_min[i]; }
-         for (int i(max_level + 1); i <= finest_level   ; ++i) { is >> real_dummy; }
-     } else {
-         for (int i(0); i <= max_level; ++i) { dt_min[i] = dt_level[i]; }
-     }
-
-     for (int i(0)            ; i <= max_level; ++i) { is >> n_cycle[i]; }
-     for (int i(max_level + 1); i <= finest_level   ; ++i) { is >> int_dummy; }
-
-     for (int i(0)            ; i <= max_level; ++i) { is >> level_steps[i]; }
-     for (int i(max_level + 1); i <= finest_level   ; ++i) { is >> int_dummy; }
-
-     for (int i(0)            ; i <= max_level; ++i) { is >> level_count[i]; }
-     for (int i(max_level + 1); i <= finest_level   ; ++i) { is >> int_dummy; }
-
-     if (regrid_on_restart && max_level > 0) {
-         if (regrid_int[0] > 0)  {
-             level_count[0] = regrid_int[0];
-         } else {
-             amrex::Error("restart: can't have regrid_on_restart and regrid_int <= 0");
-         }
-     }
-
-     checkInput();
-
-     //
-     // Read levels.
-     //
-     for (int lev = 0; lev <= new_finest_level; lev++)
-     {
-         amr_level[lev].reset((*levelbld)());
-         amr_level[lev]->restart(*this, is);
-         this->SetBoxArray(lev, amr_level[lev]->boxArray());
-         this->SetDistributionMap(lev, amr_level[lev]->DistributionMap());
-     }
-     //
-     // Build any additional data structures.
-     //
-     for (int lev = 0; lev <= new_finest_level; lev++) {
-         amr_level[lev]->post_restart();
-     }
-  }
-
-  // Save the number of steps taken so far. This mainly
-  // helps in the edge case where we end up not taking
-  // any timesteps before the run terminates, so that
-  // we know not to unnecessarily overwrite the old file.
-  last_checkpoint = level_steps[0];
-  last_plotfile = level_steps[0];
-
-  for (int lev = 0; lev <= finest_level; ++lev)
-  {
-      Box restart_domain(Geom(lev).Domain());
-     if ( ! (inputs_domain[lev] == restart_domain) )
-     {
-         std::ostringstream ss;
-         ss  << "Problem at level " << lev << '\n'
-             << "Domain according to     inputs file is " <<  inputs_domain[lev] << '\n'
-             << "Domain according to checkpoint file is " << restart_domain      << '\n'
-             << "Amr::restart() failed -- box from inputs file does not "
-             << "equal box from restart file. \n";
-         amrex::Abort(ss.str());
-     }
-  }
-
-  if (verbose > 0)
-  {
-      Real dRestartTime = amrex::second() - dRestartTime0;
-
-      ParallelDescriptor::ReduceRealMax(dRestartTime,ParallelDescriptor::IOProcessorNumber());
-
-      amrex::Print() << "Restart time = " << dRestartTime << " seconds." << '\n';
-  }
-  BL_PROFILE_REGION_STOP("Amr::restart()");
-}
-*/
-
-void
 Amr::restart (const std::string& filename)
 {
 #ifdef BL_HDF5
@@ -2290,6 +2006,8 @@ Amr::checkPoint ()
   BL_PROFILE_REGION_STOP("Amr::checkPoint()");
 }
 
+#ifdef BL_HDF5
+
 void
 Amr::checkPointHDF5 ()
 {
@@ -2344,6 +2062,212 @@ Amr::checkPointHDF5 ()
   BL_PROFILE_REGION_STOP("Amr::checkPoint()");
 }
 
+void
+Amr::restartHDF5 (const std::string& filename) {
+  BL_PROFILE_REGION_START("Amr::restartHDF5()");
+  BL_PROFILE("Amr::restartHDF5()");
+
+  which_level_being_advanced = -1;
+
+  Real dRestartTime0 = amrex::second();
+
+  if (verbose > 0) {
+      amrex::Print() << "restarting calculation from file: " << filename << "\n";
+  }
+
+  if (record_run_info && ParallelDescriptor::IOProcessor()) {
+      runlog << "RESTART from file = " << filename << '\n';
+  }
+  //
+  // Init problem dependent data.
+  //
+  int linit = false;
+
+  readProbinFile(linit);
+  //
+  // Start calculation from given restart file.
+  //
+  if (record_run_info && ParallelDescriptor::IOProcessor()) {
+      runlog << "RESTART from file = " << filename << '\n';
+  }
+
+  //
+  // Open the checkpoint header file for reading.
+  //
+
+  H5 h5;
+
+  h5.openFile(filename);
+
+  //
+  // Read global data.
+  //
+
+  // spatial dimensions
+  int spdim;
+  h5.readAttribute("SpaceDim", spdim, H5T_NATIVE_INT);
+
+  if (spdim != AMREX_SPACEDIM)
+  {
+      amrex::ErrorStream() << "Amr::restart(): bad spacedim = " << spdim << '\n';
+      amrex::Abort();
+  }
+
+  h5.readAttribute("SpaceDim", cumtime, H5T_NATIVE_DOUBLE);
+  h5.readAttribute("max_level", finest_level, H5T_NATIVE_DOUBLE);
+
+  Vector<Box> inputs_domain(max_level+1);
+  for (int lev = 0; lev <= max_level; ++lev) {
+      Box bx(Geom(lev).Domain().smallEnd(),Geom(lev).Domain().bigEnd());
+     inputs_domain[lev] = bx;
+  }
+
+  bool any_changed = false;
+
+  for (int i=0; i<= finest_level; ++i) {
+    H5 level_grp = h5.openGroup("level_"+num2str(i));
+
+    // problem domain (logical)
+    hid_t box_id = makeBox();
+    box_h5_t box;
+    level_grp.readAttribute("prob_domain", box, box_id);
+    Box bx = readBox(box);
+    H5Tclose(box_id);
+
+    // problem domain (real)
+    hid_t rbox_id = makeRealBox();
+    rbox_h5_t rbox;
+    level_grp.readAttribute("real_domain", rbox, rbox_id);
+    RealBox rb = readRealBox(rbox);
+    H5Tclose(rbox_id);
+
+    Geometry& geom = Geom(i);
+    geom.define(bx, &rb);
+
+    // refinement ratio
+    int rr [AMREX_SPACEDIM];
+    hid_t intvect_id = makeIntVec();
+    level_grp.readAttribute("vec_ref_ratio", rr, intvect_id);
+    ref_ratio[i] = IntVect(rr);
+
+    // dt
+    level_grp.readAttribute("dt", dt_level[i], H5T_NATIVE_DOUBLE);
+
+    // dt min
+    level_grp.readAttribute("min_dt", dt_min[i], H5T_NATIVE_DOUBLE);
+
+    // ncycle
+    int n_cycle_in;
+    level_grp.readAttribute("n_cycle", n_cycle_in, H5T_NATIVE_DOUBLE);
+
+    if (n_cycle[i] != n_cycle_in) {
+        any_changed = true;
+        if (verbose > 0) {
+            amrex::Print() << "Warning: n_cycle has changed at level " << i <<
+                              " from " << n_cycle_in << " to " << n_cycle[i] << "\n";
+        }
+        // If we change n_cycle then force a full regrid from level 0 up
+        if (max_level > 0 && any_changed) {
+            level_count[0] = regrid_int[0];
+            if (verbose > 0) {
+                amrex::Print() << "Warning: This forces a full regrid \n";
+              }
+          }
+      }
+
+    // steps
+    level_grp.readAttribute("level_steps", level_steps[i], H5T_NATIVE_DOUBLE);
+
+    // count
+    level_grp.readAttribute("level_count", level_count[i], H5T_NATIVE_DOUBLE);
+
+    level_grp.closeGroup();
+
+  }
+
+
+   //
+   // Set bndry conditions.
+   //
+   if (max_level > finest_level) {
+       for (int i(finest_level + 1); i <= max_level; ++i)
+       {
+           dt_level[i]    = dt_level[i-1]/n_cycle[i];
+           level_steps[i] = n_cycle[i]*level_steps[i-1];
+           level_count[i] = 0;
+       }
+
+       // This is just an error check
+       if ( ! sub_cycle)
+       {
+           for (int i(1); i <= finest_level; ++i)
+           {
+               if (dt_level[i] != dt_level[i-1]) {
+                  amrex::Error("restart: must have same dt at all levels if not subcycling");
+               }
+           }
+       }
+   }
+
+   if (regrid_on_restart && max_level > 0) {
+       if (regrid_int[0] > 0) {
+           level_count[0] = regrid_int[0];
+       } else {
+           amrex::Error("restart: can't have regrid_on_restart and regrid_int <= 0");
+       }
+   }
+
+   checkInput();
+   //
+   // Read levels.
+   //
+   for (int lev(0); lev <= finest_level; ++lev) {
+       amr_level[lev].reset((*levelbld)());
+       amr_level[lev]->restartHDF5(*this, h5);
+       this->SetBoxArray(lev, amr_level[lev]->boxArray());
+       this->SetDistributionMap(lev, amr_level[lev]->DistributionMap());
+   }
+   //
+   // Build any additional data structures.
+   //
+   for (int lev = 0; lev <= finest_level; lev++) {
+       amr_level[lev]->post_restart();
+   }
+
+  // Save the number of steps taken so far. This mainly
+  // helps in the edge case where we end up not taking
+  // any timesteps before the run terminates, so that
+  // we know not to unnecessarily overwrite the old file.
+  last_checkpoint = level_steps[0];
+  last_plotfile = level_steps[0];
+
+  for (int lev = 0; lev <= finest_level; ++lev)
+  {
+      Box restart_domain(Geom(lev).Domain());
+     if ( ! (inputs_domain[lev] == restart_domain) )
+     {
+         std::ostringstream ss;
+         ss  << "Problem at level " << lev << '\n'
+             << "Domain according to     inputs file is " <<  inputs_domain[lev] << '\n'
+             << "Domain according to checkpoint file is " << restart_domain      << '\n'
+             << "Amr::restart() failed -- box from inputs file does not "
+             << "equal box from restart file. \n";
+         amrex::Abort(ss.str());
+     }
+  }
+
+  if (verbose > 0)
+  {
+      Real dRestartTime = amrex::second() - dRestartTime0;
+
+      ParallelDescriptor::ReduceRealMax(dRestartTime,ParallelDescriptor::IOProcessorNumber());
+
+      amrex::Print() << "Restart time = " << dRestartTime << " seconds." << '\n';
+  }
+  BL_PROFILE_REGION_STOP("Amr::restart()");
+}
+
+#endif
 
 void
 Amr::RegridOnly (Real time, bool do_io)

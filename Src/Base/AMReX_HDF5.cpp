@@ -233,6 +233,12 @@ H5 H5::createGroup(const std::string name) {
   return out;
 }
 
+H5 H5::openGroup(const std::string name) {
+  H5 out;
+  out.obj = H5Gopen2(obj, name.c_str(), H5P_DEFAULT);
+  return out;
+}
+
 void H5::closeGroup() { H5Gclose(obj); }
 
 herr_t H5::writeAttribute(std::map<std::string, int>& m_int,

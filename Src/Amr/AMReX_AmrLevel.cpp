@@ -320,8 +320,78 @@ void AmrLevel::writePlotFile(MultiFab& plot_data,
 
 #ifdef BL_HDF5
 
+void AmrLevel::updateSortedGridDistributions()
+{
+
+  const Vector<int>& pMap = this->DistributionMap().ProcessorMap();
+
+  gridMap.clear();
+  for (int i = 0; i < grids.size(); ++i) {
+    int gridProc = pMap[i];
+    Vector<Box>& boxesAtProc = gridMap[gridProc];
+    boxesAtProc.push_back(grids[i]);
+  }
+
+  // sorted grids and processor ids
+  sortedGrids.resize(grids.size());
+  sortedProcs.resize(grids.size());
+  int bIndex = 0;
+  for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
+    int proc = it->first;
+    Vector<Box>& boxesAtProc = it->second;
+    for (int ii = 0; ii < boxesAtProc.size(); ++ii) {
+      sortedGrids.set(bIndex, boxesAtProc[ii]);
+      sortedProcs[bIndex] = proc;
+      ++bIndex;
+    }
+  }
+  return;
+}
+
+
+void AmrLevel::getSortedDataDistributions(MultiFab* data_mf,
+  Vector<unsigned long long>& offsets, Vector<unsigned long long>& procOffsets,
+  Vector<unsigned long long>& procBufferSize)
+{
+
+  int nComp = data_mf->nComp();
+
+  // offset of data for each grid
+  offsets.resize(sortedGrids.size() + 1);
+  unsigned long long currentOffset = 0L;
+  for (int b = 0; b < sortedGrids.size(); ++b) {
+    offsets[b] = currentOffset;
+    currentOffset += sortedGrids[b].numPts() * nComp;
+  }
+  offsets[sortedGrids.size()] = currentOffset;
+
+  int nProcs(ParallelDescriptor::NProcs());
+
+  // processor offsets
+  procOffsets.resize(nProcs);
+  procBufferSize.resize(nProcs);
+  unsigned long long totalOffset = 0L;
+  for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
+    int proc = it->first;
+    Vector<Box>& boxesAtProc = it->second;
+    procOffsets[proc] = totalOffset;
+    procBufferSize[proc] = 0L;
+    for (int b = 0; b < boxesAtProc.size(); ++b) {
+      procBufferSize[proc] += boxesAtProc[b].numPts() * nComp;
+    }
+    totalOffset += procBufferSize[proc];
+  }
+
+  return;
+}
+
+
 void AmrLevel::writeLevelAttrHDF5(H5& h5)
 {
+
+  // level
+  h5.writeAttribute("level", level, H5T_NATIVE_INT);
+
   // cell spacing
   const Real* a_dx = geom.CellSize();
   hid_t realvect_id = makeDoubleVec();
@@ -352,6 +422,28 @@ void AmrLevel::writeLevelAttrHDF5(H5& h5)
   double time = parent->cumTime();
   h5.writeAttribute("time", time, H5T_NATIVE_DOUBLE);
 
+  // time step for level
+  h5.writeAttribute("time", time, H5T_NATIVE_DOUBLE);
+
+  // time step size
+  Real a_dt(parent->dtLevel(level));
+  h5.writeAttribute("dt", a_dt, H5T_NATIVE_DOUBLE);
+
+  Real a_min_dt(parent->dtMin(level));
+  h5.writeAttribute("min_dt", a_min_dt, H5T_NATIVE_DOUBLE);
+
+  // cycles
+  int nc = parent->nCycle(level);
+  h5.writeAttribute("n_cycle", nc, H5T_NATIVE_INT);
+
+  // steps
+  int steps = parent->levelSteps(level);
+  h5.writeAttribute("level_steps", steps, H5T_NATIVE_INT);
+
+  // count
+  int count = parent->levelCount(level);
+  h5.writeAttribute("level_count", count, H5T_NATIVE_INT);
+
   // problem domain
   Box bx(geom.Domain());
   hid_t box_id = makeBox();
@@ -362,67 +454,36 @@ void AmrLevel::writeLevelAttrHDF5(H5& h5)
   hid_t rbox_id = makeRealBox();
   rbox_h5_t rbox = writeRealBox(rbx);
   h5.writeAttribute("real_domain", rbox, rbox_id);
+  H5Tclose(rbox_id);
+
+  // box layout etc
+  updateSortedGridDistributions();
+
+  // processors
+  Vector<int> pid(sortedGrids.size());
+  for (int b = 0; b < sortedGrids.size(); ++b) {
+    pid[b] = sortedProcs[b];
+  }
+  h5.writeType("Processors", {(hsize_t)pid.size()}, pid, H5T_NATIVE_INT);
+
+  // boxes
+  int vbCount = 0;
+  std::vector<box_h5_t> boxes(sortedGrids.size());
+  for (int b(0); b < sortedGrids.size(); ++b) {
+    writeBox(sortedGrids[b], boxes[vbCount]);
+    ++vbCount;
+  }
+  h5.writeType("boxes", {(hsize_t)boxes.size()}, boxes, box_id);
+  H5Tclose(box_id);
+
 }
 
-void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time, const std::vector<std::string> data_names)
+void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
+    const std::vector<std::string> data_names, int id)
 {
 
   int myProc(ParallelDescriptor::MyProc());
-  int nProcs(ParallelDescriptor::NProcs());
-
   int nComp = data_mf->nComp();
-
-  // ============================================================================
-  // processor and data mapping
-  // ============================================================================
-
-  Vector<int> procMap = data_mf->DistributionMap().ProcessorMap();
-
-  // gridMap = {proc_id:[boxes], ...}
-  std::map<int, Vector<Box> > gridMap;
-  for (int i = 0; i < grids.size(); ++i) {
-    int gridProc = procMap[i];
-    Vector<Box>& boxesAtProc = gridMap[gridProc];
-    boxesAtProc.push_back(grids[i]);
-  }
-
-  // sorted grids and processor ids
-  BoxArray sortedGrids(grids.size());
-  Vector<int> sortedProcs(grids.size());
-  int bIndex = 0;
-  for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
-    int proc = it->first;
-    Vector<Box>& boxesAtProc = it->second;
-    for (int ii = 0; ii < boxesAtProc.size(); ++ii) {
-      sortedGrids.set(bIndex, boxesAtProc[ii]);
-      sortedProcs[bIndex] = proc;
-      ++bIndex;
-    }
-  }
-
-  // offset of data for each grid
-  Vector<unsigned long long> offsets(sortedGrids.size() + 1);
-  unsigned long long currentOffset = 0L;
-  for (int b = 0; b < sortedGrids.size(); ++b) {
-    offsets[b] = currentOffset;
-    currentOffset += sortedGrids[b].numPts() * nComp;
-  }
-  offsets[sortedGrids.size()] = currentOffset;
-
-  // processor offsets
-  Vector<unsigned long long> procOffsets(nProcs);
-  Vector<unsigned long long> procBufferSize(nProcs);
-  unsigned long long totalOffset = 0L;
-  for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
-    int proc = it->first;
-    Vector<Box>& boxesAtProc = it->second;
-    procOffsets[proc] = totalOffset;
-    procBufferSize[proc] = 0L;
-    for (int b = 0; b < boxesAtProc.size(); ++b) {
-      procBufferSize[proc] += boxesAtProc[b].numPts() * nComp;
-    }
-    totalOffset += procBufferSize[proc];
-  }
 
   //-----------------------------------------------------------------------------------
   // levels data attributes
@@ -453,26 +514,13 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time, con
   h5.writeAttribute("time", time, H5T_NATIVE_DOUBLE);
   //-----------------------------------------------------------------------------------
 
-  // processors
-  Vector<int> pid(sortedGrids.size());
-  for (int b = 0; b < sortedGrids.size(); ++b) {
-    pid[b] = sortedProcs[b];
-  }
-  h5.writeType("Processors", {(hsize_t)pid.size()}, pid, H5T_NATIVE_INT);
-
-  // boxes
-  int vbCount = 0;
-  hid_t box_id = makeBox();
-  std::vector<box_h5_t> boxes(sortedGrids.size());
-  for (int b(0); b < sortedGrids.size(); ++b) {
-    writeBox(sortedGrids[b], boxes[vbCount]);
-    ++vbCount;
-  }
-  h5.writeType("boxes", {(hsize_t)boxes.size()}, boxes, box_id);
-  H5Tclose(box_id);
+  Vector<unsigned long long> offsets;
+  Vector<unsigned long long> procOffsets;
+  Vector<unsigned long long> procBufferSize;
+  getSortedDataDistributions(data_mf, offsets, procOffsets, procBufferSize);
 
   // offsets
-  h5.writeType("data:offsets=0", {(hsize_t)offsets.size()}, offsets,
+  h5.writeType("data:offsets="+num2str(id), {(hsize_t)offsets.size()}, offsets,
                      H5T_NATIVE_LLONG);
 
   //-----------------------------------------------------------------------------------
@@ -498,7 +546,7 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time, con
   std::vector<hsize_t> offset = {(hsize_t)procOffsets[myProc]};
 
   // then write
-  h5.writeSlab("data:datatype=0", full_dims, local_dims, offset, a_buffer,
+  h5.writeSlab("data:datatype="+num2str(id), full_dims, local_dims, offset, a_buffer,
                      H5T_NATIVE_DOUBLE);
 
   return;
@@ -562,6 +610,7 @@ void AmrLevel::writePlotHDF5(MultiFab& data_mf,
 void AmrLevel::writePlotFilePre() {}
 
 void AmrLevel::writePlotFilePost() {}
+
 
 
 void
@@ -762,10 +811,6 @@ AmrLevel::checkPointHDF5 (H5& h5)
   int num_state = (int) desc_lst.size();
   level_grp.writeAttribute("num_state", num_state, H5T_NATIVE_INT);
 
-  // time step size
-  Real a_dt(parent->dtLevel(level));
-  level_grp.writeAttribute("dt", a_dt, H5T_NATIVE_DOUBLE);
-
   // do we have old/new data?
   hbool_t have_old = false;
   hbool_t have_new = false;
@@ -821,6 +866,90 @@ AmrLevel::checkPointHDF5 (H5& h5)
 
   return;
 }
+
+void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
+{
+    BL_PROFILE("AmrLevel::restartHDF5()");
+    parent = &papa;
+
+    h5.readAttribute("level", level, H5T_NATIVE_INT);
+
+
+    // problem domain (logical)
+    hid_t box_id = makeBox();
+    box_h5_t box;
+    h5.readAttribute("prob_domain", box, box_id);
+    Box bx = readBox(box);
+    H5Tclose(box_id);
+
+    // problem domain (real)
+    hid_t rbox_id = makeRealBox();
+    rbox_h5_t rbox;
+    h5.readAttribute("real_domain", rbox, rbox_id);
+    RealBox rb = readRealBox(rbox);
+    H5Tclose(rbox_id);
+
+    geom.define(bx, &rb);
+
+
+    fine_ratio = IntVect::TheUnitVector(); fine_ratio.scale(-1);
+    crse_ratio = IntVect::TheUnitVector(); crse_ratio.scale(-1);
+
+    if (level > 0)
+    {
+        crse_ratio = parent->refRatio(level-1);
+    }
+    if (level < parent->maxLevel())
+    {
+        fine_ratio = parent->refRatio(level);
+    }
+
+/*
+    grids.readFrom(is);
+
+
+    int nstate;
+    is >> nstate;
+    int ndesc = desc_lst.size();
+
+    Vector<int> state_in_checkpoint(ndesc, 1);
+    if (ndesc > nstate) {
+        set_state_in_checkpoint(state_in_checkpoint);
+    } else {
+        BL_ASSERT(nstate == ndesc);
+    }
+
+    dmap.define(grids);
+
+    parent->SetBoxArray(level, grids);
+    parent->SetDistributionMap(level, dmap);
+
+#ifdef AMREX_USE_EB
+    m_factory = makeEBFabFactory(geom, grids, dmap,
+                                 {m_eb_basic_grow_cells, m_eb_volume_grow_cells, m_eb_full_grow_cells},
+                                 m_eb_support_level);
+#else
+    m_factory.reset(new FArrayBoxFactory());
+#endif
+
+    state.resize(ndesc);
+    for (int i = 0; i < ndesc; ++i)
+    {
+        if (state_in_checkpoint[i]) {
+            state[i].restart(is, geom.Domain(), grids, dmap, *m_factory,
+                             desc_lst[i], papa.theRestartFile());
+        }
+    }
+
+    if (parent->useFixedCoarseGrids()) constructAreaNotToTag();
+
+    post_step_regrid = 0;
+
+    finishConstructor();
+    */
+}
+
+
 #endif
 
 void
