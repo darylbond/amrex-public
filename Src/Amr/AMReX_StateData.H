@@ -280,6 +280,8 @@ public:
                   const std::string&     restart_file);
 
 #ifdef BL_HDF5
+    void checkPointHDF5 (H5& h5, hbool_t dump_old = true);
+
     void restartHDF5 (H5&                    h5,
                       const Box&             p_domain,
                       const BoxArray&        grds,

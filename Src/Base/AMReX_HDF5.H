@@ -325,12 +325,46 @@ class H5 {
     H5Dclose(dset);
   }
 
+  template <class T>
+  void readSlab(const std::string name, const std::vector<hsize_t>& full_dims,
+                const std::vector<hsize_t>& local_dims,
+                const std::vector<hsize_t>& offset, std::vector<T>& data,
+                hid_t type) {
+    // open the dataset
+    hid_t dset = H5Dopen2(obj, name.c_str(), H5P_DEFAULT);
+
+    // define the hyperslab in the source
+    hid_t filespace = H5Screate_simple(local_dims.size(), local_dims.data(), NULL);
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset.data(), NULL,
+                        local_dims.data(), NULL);
+
+    // define the hyperslab in the destination
+    hid_t memspace = H5Screate_simple(full_dims.size(), full_dims.data(), NULL);
+    H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset.data(), NULL,
+                        full_dims.data(), NULL);
+
+    hid_t plist_id;
+    plist_id = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+    //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
+
+    herr_t err = H5Dread(dset, type, memspace, filespace, plist_id, data.data());
+
+
+    H5Sclose(filespace);
+    H5Sclose(memspace);
+    H5Pclose(plist_id);
+    H5Dclose(dset);
+  }
+
   herr_t writeAttribute(std::map<std::string, int>& m_int,
                        std::map<std::string, double>& m_real,
                        std::map<std::string, std::string>& m_string);
 
   void writeString(const std::string name, const std::string& data);
   void writeString(const std::string name, const std::vector<std::string>& data);
+
+
 };
 
 }

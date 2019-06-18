@@ -47,15 +47,6 @@ namespace amrex
                              int                num,
                              int                mindigits = 5);
 
-    //! Convert a number to a string
-    template <typename T>
-    std::string num2str(const T Number) {
-      std::ostringstream ss;
-      ss.precision(16);
-      ss << Number;
-      return ss.str();
-    }
-
     /**
     *  \brief Creates the specified directories.  path may be either a full pathname
     *  or a relative pathname.  It will create all the directories in the
@@ -368,6 +359,15 @@ namespace amrex
     {
         return max(max(a,b),c...);
     }
+}
+
+//! Convert a number to a string
+template <typename T>
+std::string num2str(const T Number) {
+  std::ostringstream ss;
+  ss.precision(16);
+  ss << Number;
+  return ss.str();
 }
 
 template<class T> void amrex::BroadcastArray(Vector<T> &aT, int myLocalId, int rootId, const MPI_Comm &localComm)

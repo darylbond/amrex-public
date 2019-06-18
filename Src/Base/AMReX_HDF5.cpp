@@ -263,6 +263,9 @@ void H5::createFile(const std::string name, MPI_Comm comm) {
 
 void H5::openFile(const std::string name) {
   obj = H5Fopen(name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+  if (obj < 0) {
+    amrex::Abort("Unbale to open " + name);
+  }
   return;
 }
 
@@ -408,4 +411,5 @@ void H5::writeString(const std::string name,
   return;
 }
 }
+
 #endif

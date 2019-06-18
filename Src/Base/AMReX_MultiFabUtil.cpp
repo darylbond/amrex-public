@@ -740,4 +740,180 @@ namespace amrex
             });
         }
     }
+
+#ifdef BL_HDF5
+
+    SortedGrids::SortedGrids()
+    {
+      return;
+    }
+
+    SortedGrids::SortedGrids(const BoxArray &grids, const DistributionMapping &dmap)
+    {
+      update(grids, dmap);
+      return;
+    }
+
+    void SortedGrids::update(const BoxArray &grids, const DistributionMapping &dmap)
+    {
+      const Vector<int>& pMap = dmap.ProcessorMap();
+
+      gridMap.clear();
+      for (int i = 0; i < grids.size(); ++i) {
+        int gridProc = pMap[i];
+        Vector<Box>& boxesAtProc = gridMap[gridProc];
+        boxesAtProc.push_back(grids[i]);
+      }
+
+      // sorted grids and processor ids
+      sortedGrids.resize(grids.size());
+      sortedProcs.resize(grids.size());
+      int bIndex = 0;
+      for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
+        int proc = it->first;
+        Vector<Box>& boxesAtProc = it->second;
+        for (int ii = 0; ii < boxesAtProc.size(); ++ii) {
+          sortedGrids.set(bIndex, boxesAtProc[ii]);
+          sortedProcs[bIndex] = proc;
+          ++bIndex;
+        }
+      }
+      return;
+    }
+
+    void SortedGrids::update(MultiFab* data_mf)
+    {
+      int nComp = data_mf->nComp();
+
+      // offset of data for each grid
+      offsets.resize(sortedGrids.size() + 1);
+      unsigned long long currentOffset = 0L;
+      for (int b = 0; b < sortedGrids.size(); ++b) {
+        offsets[b] = currentOffset;
+        currentOffset += sortedGrids[b].numPts() * nComp;
+      }
+      offsets[sortedGrids.size()] = currentOffset;
+
+      int nProcs(ParallelDescriptor::NProcs());
+
+      // processor offsets
+      procOffsets.resize(nProcs);
+      procBufferSize.resize(nProcs);
+      unsigned long long totalOffset = 0L;
+      for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
+        int proc = it->first;
+        Vector<Box>& boxesAtProc = it->second;
+        procOffsets[proc] = totalOffset;
+        procBufferSize[proc] = 0L;
+        for (int b = 0; b < boxesAtProc.size(); ++b) {
+          procBufferSize[proc] += boxesAtProc[b].numPts() * nComp;
+        }
+        totalOffset += procBufferSize[proc];
+      }
+      return;
+    }
+
+    void writeMultiFab(H5& h5, MultiFab* data_mf, const Real time,
+                           const std::vector<std::string> data_names)
+    {
+
+      int myProc(ParallelDescriptor::MyProc());
+      int nComp = data_mf->nComp();
+
+      const BoxArray& grids = data_mf->boxArray();
+      const DistributionMapping& dmap = data_mf->DistributionMap();
+
+      //-----------------------------------------------------------------------------------
+      // multifabs data attributes
+
+      std::map<std::string, int> vMInt;
+      std::map<std::string, Real> vMReal;
+      std::map<std::string, std::string> vMString;
+
+      vMInt["comps"] = nComp;
+      vMInt["num_names"] = data_names.size();
+      for (size_t i=0; i<data_names.size(); ++i) {
+          vMString["component_"+num2str(i)] = data_names[i];
+        }
+      vMReal["time"] = time;
+
+      h5.writeAttribute(vMInt, vMReal, vMString);
+
+      // the number of ghost cells saved and output
+      IntVect nGrow = data_mf->nGrowVect();
+      hid_t intvect_id = makeH5IntVec();
+      int_h5_t gint = writeH5IntVec(nGrow.getVect());
+      h5.writeAttribute("ghost", gint, intvect_id);
+      h5.writeAttribute("outputGhost", gint, intvect_id);
+
+      // box layout etc
+      SortedGrids sg(grids, dmap);
+      sg.update(data_mf);
+      //  sg.sortedGrids.writeOnHDF5(h5, "boxes"); // <- this should already be written by writeLevelAttr
+
+      // offsets
+      h5.writeType("data:offsets=0", {(hsize_t)sg.offsets.size()}, sg.offsets,
+                   H5T_NATIVE_LLONG);
+
+      // write data
+      // first gather
+      std::vector<Real> a_buffer(sg.procBufferSize[myProc], -1.0);
+      long dataCount(0);
+      for (MFIter mfi(*data_mf); mfi.isValid(); ++mfi) {
+          const Box& vbox = mfi.validbox();
+
+          const Real* dataPtr = (*data_mf)[mfi].dataPtr();
+          for (int i(0); i < vbox.numPts() * nComp; ++i) {
+              a_buffer[dataCount++] = dataPtr[i];
+            }
+        }
+
+      // define how big and where
+      std::vector<hsize_t> full_dims = {(hsize_t)sg.offsets.back()};
+      std::vector<hsize_t> local_dims = {(hsize_t)sg.procBufferSize[myProc]};
+      std::vector<hsize_t> offset = {(hsize_t)sg.procOffsets[myProc]};
+
+      // then write
+      h5.writeSlab("data:datatype=0", full_dims, local_dims, offset, a_buffer,
+                   H5T_NATIVE_DOUBLE);
+
+      return;
+
+    }
+
+    void readMultiFab(H5& h5, MultiFab* data_mf) {
+      int myProc(ParallelDescriptor::MyProc());
+      int nComp = data_mf->nComp();
+
+      const BoxArray& grids = data_mf->boxArray();
+      const DistributionMapping& dmap = data_mf->DistributionMap();
+
+
+      // box layout etc
+      SortedGrids sg(grids, dmap);
+      sg.update(data_mf);
+
+      // get the data from file
+      std::vector<Real> a_buffer(sg.procBufferSize[myProc], -1.0);
+      std::vector<hsize_t> full_dims = {(hsize_t)sg.offsets.back()};
+      std::vector<hsize_t> local_dims = {(hsize_t)sg.procBufferSize[myProc]};
+      std::vector<hsize_t> offset = {(hsize_t)sg.procOffsets[myProc]};
+
+      h5.readSlab("data:datatype=0", full_dims, local_dims, offset, a_buffer,
+                   H5T_NATIVE_DOUBLE);
+
+
+      // broadcast to multifab
+      long dataCount(0);
+      for (MFIter mfi(*data_mf); mfi.isValid(); ++mfi) {
+          const Box& vbox = mfi.validbox();
+          Real* dataPtr = (*data_mf)[mfi].dataPtr();
+          for (int i(0); i < vbox.numPts() * nComp; ++i) {
+              dataPtr[i] = a_buffer[dataCount++];
+            }
+        }
+    }
+
+#endif
+
 }

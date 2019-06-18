@@ -1357,7 +1357,6 @@ double amrex::second () noexcept
         (amrex::MaxResSteadyClock::now() - clock_time_begin).count();
 }
 
-
 extern "C" {
     void* amrex_malloc (std::size_t size)
     {

@@ -7,6 +7,11 @@
 #include <AMReX_LayoutData.H>
 #include <AMReX_Array.H>
 #include <AMReX_Vector.H>
+#include <AMReX_BoxArray.H>
+
+#ifdef BL_HDF5
+#include <AMReX_HDF5.H>
+#endif
 
 namespace amrex
 {
@@ -324,6 +329,31 @@ namespace amrex
             return mf_out;
         }
     }
+
+#ifdef BL_HDF5
+    //! Get a sorted list of grids and processors to aid in saving to HDF5
+    class SortedGrids
+    {
+      public:
+      std::map<int, Vector<Box> > gridMap; // = {proc_id:[boxes], ...}
+      BoxArray sortedGrids;
+      Vector<int> sortedProcs;
+      Vector<unsigned long long> offsets;
+      Vector<unsigned long long> procOffsets;
+      Vector<unsigned long long> procBufferSize;
+
+      SortedGrids();
+      SortedGrids(const BoxArray& grids, const DistributionMapping& dmap);
+      void update(const BoxArray& grids, const DistributionMapping& dmap);
+      void update(MultiFab* data_mf);
+
+    };
+
+    void writeMultiFab(H5& obj, MultiFab* data_mf, const Real time,
+                       const std::vector<std::string> data_names=std::vector<std::string>());
+
+    void readMultiFab(H5& obj, MultiFab* data_mf);
+#endif
 }
 
 

@@ -320,72 +320,6 @@ void AmrLevel::writePlotFile(MultiFab& plot_data,
 
 #ifdef BL_HDF5
 
-void AmrLevel::updateSortedGridDistributions()
-{
-
-  const Vector<int>& pMap = this->DistributionMap().ProcessorMap();
-
-  gridMap.clear();
-  for (int i = 0; i < grids.size(); ++i) {
-    int gridProc = pMap[i];
-    Vector<Box>& boxesAtProc = gridMap[gridProc];
-    boxesAtProc.push_back(grids[i]);
-  }
-
-  // sorted grids and processor ids
-  sortedGrids.resize(grids.size());
-  sortedProcs.resize(grids.size());
-  int bIndex = 0;
-  for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
-    int proc = it->first;
-    Vector<Box>& boxesAtProc = it->second;
-    for (int ii = 0; ii < boxesAtProc.size(); ++ii) {
-      sortedGrids.set(bIndex, boxesAtProc[ii]);
-      sortedProcs[bIndex] = proc;
-      ++bIndex;
-    }
-  }
-  return;
-}
-
-
-void AmrLevel::getSortedDataDistributions(MultiFab* data_mf,
-  Vector<unsigned long long>& offsets, Vector<unsigned long long>& procOffsets,
-  Vector<unsigned long long>& procBufferSize)
-{
-
-  int nComp = data_mf->nComp();
-
-  // offset of data for each grid
-  offsets.resize(sortedGrids.size() + 1);
-  unsigned long long currentOffset = 0L;
-  for (int b = 0; b < sortedGrids.size(); ++b) {
-    offsets[b] = currentOffset;
-    currentOffset += sortedGrids[b].numPts() * nComp;
-  }
-  offsets[sortedGrids.size()] = currentOffset;
-
-  int nProcs(ParallelDescriptor::NProcs());
-
-  // processor offsets
-  procOffsets.resize(nProcs);
-  procBufferSize.resize(nProcs);
-  unsigned long long totalOffset = 0L;
-  for (auto it = gridMap.begin(); it != gridMap.end(); ++it) {
-    int proc = it->first;
-    Vector<Box>& boxesAtProc = it->second;
-    procOffsets[proc] = totalOffset;
-    procBufferSize[proc] = 0L;
-    for (int b = 0; b < boxesAtProc.size(); ++b) {
-      procBufferSize[proc] += boxesAtProc[b].numPts() * nComp;
-    }
-    totalOffset += procBufferSize[proc];
-  }
-
-  return;
-}
-
-
 void AmrLevel::writeLevelAttrHDF5(H5& h5)
 {
 
@@ -451,87 +385,8 @@ void AmrLevel::writeLevelAttrHDF5(H5& h5)
   writeRealBoxOnHDF5(geom.ProbDomain(), h5, "real_domain");
 
   // box layout etc
-  updateSortedGridDistributions();
-
-  // processors
-  Vector<int> pid(sortedGrids.size());
-  for (int b = 0; b < sortedGrids.size(); ++b) {
-    pid[b] = sortedProcs[b];
-  }
-  h5.writeType("Processors", {(hsize_t)pid.size()}, pid, H5T_NATIVE_INT);
-
-  // boxes
-  sortedGrids.writeOnHDF5(h5, "boxes");
-
-}
-
-void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
-    const std::vector<std::string> data_names, int id)
-{
-
-  int myProc(ParallelDescriptor::MyProc());
-  int nComp = data_mf->nComp();
-
-  //-----------------------------------------------------------------------------------
-  // multifabs data attributes
-
-  std::map<std::string, int> vMInt;
-  std::map<std::string, Real> vMReal;
-  std::map<std::string, std::string> vMString;
-
-  vMInt["comps"] = nComp;
-  vMInt["num_names"] = data_names.size();
-  for (size_t i=0; i<data_names.size(); ++i) {
-    vMString["component_"+num2str(i)] = data_names[i];
-  }
-  vMReal["time"] = time;
-
-  h5.writeAttribute(vMInt, vMReal, vMString);
-
-  // the number of ghost cells saved and output
-  IntVect nGrow = data_mf->nGrowVect();
-  hid_t intvect_id = makeH5IntVec();
-  int_h5_t gint = writeH5IntVec(nGrow.getVect());
-  h5.writeAttribute("ghost", gint, intvect_id);
-  h5.writeAttribute("outputGhost", gint, intvect_id);
-
-  // boxes
-  sortedGrids.writeOnHDF5(h5, "boxes");
-
-  //-----------------------------------------------------------------------------------
-
-  Vector<unsigned long long> offsets;
-  Vector<unsigned long long> procOffsets;
-  Vector<unsigned long long> procBufferSize;
-  getSortedDataDistributions(data_mf, offsets, procOffsets, procBufferSize);
-
-  // offsets
-  h5.writeType("data:offsets="+num2str(id), {(hsize_t)offsets.size()}, offsets,
-                     H5T_NATIVE_LLONG);
-
-  // write data
-  // first gather
-  std::vector<Real> a_buffer(procBufferSize[myProc], -1.0);
-  long dataCount(0);
-  for (MFIter mfi(*data_mf); mfi.isValid(); ++mfi) {
-    const Box& vbox = mfi.validbox();
-
-    const Real* dataPtr = (*data_mf)[mfi].dataPtr();
-    for (int i(0); i < vbox.numPts() * nComp; ++i) {
-      a_buffer[dataCount++] = dataPtr[i];
-    }
-  }
-
-  // define how big and where
-  std::vector<hsize_t> full_dims = {(hsize_t)offsets.back()};
-  std::vector<hsize_t> local_dims = {(hsize_t)procBufferSize[myProc]};
-  std::vector<hsize_t> offset = {(hsize_t)procOffsets[myProc]};
-
-  // then write
-  h5.writeSlab("data:datatype="+num2str(id), full_dims, local_dims, offset, a_buffer,
-                     H5T_NATIVE_DOUBLE);
-
-  return;
+  SortedGrids sg(grids, dmap);
+  sg.sortedGrids.writeOnHDF5(h5, "boxes");
 
 }
 
@@ -583,8 +438,7 @@ void AmrLevel::writePlotHDF5(MultiFab& data_mf,
   H5 level_grp = h5.createGroup("/level_" + num2str(level));
 
   writeLevelAttrHDF5(level_grp);
-  writeMultiFabHDF5(level_grp, &data_mf, parent->cumTime());
-
+  writeMultiFab(level_grp, &data_mf, parent->cumTime());
   level_grp.closeGroup();
 }
 #endif
@@ -794,37 +648,25 @@ AmrLevel::checkPointHDF5 (H5& h5)
   level_grp.writeAttribute("num_state", num_state, H5T_NATIVE_INT);
 
   // now go through each multifab associated with the state variables and save them out
-  std::vector<std::string> data_names;
-  hbool_t have_old, have_new;
+
   for (int typ = 0; typ < desc_lst.size(); ++typ) {
 
     H5 state_grp = level_grp.createGroup("state_" + num2str(typ));
+    state[typ].checkPointHDF5(state_grp);
+    int nComp = desc_lst[typ].nComp();
 
-    have_old = false;
-    have_new = false;
-
-    data_names.resize(0);
-    for (int comp=0; comp < desc_lst[typ].nComp(); ++comp) {
-      data_names.push_back(desc_lst[typ].name(comp));
+    vMInt.clear();
+    vMReal.clear();
+    vMString.clear();
+    vMInt["comps"] = nComp;
+    for (int comp=0; comp < nComp; ++comp) {
+      vMString["component_"+num2str(comp)] = desc_lst[typ].name(comp);
     }
+    vMInt["num_names"] = vMString.size();
 
-    if (state[typ].hasOldData()) {
-      have_old = true;
-      H5 old_grp = state_grp.createGroup("old");
-      MultiFab* data = &state[typ].oldData();
-      writeMultiFabHDF5(old_grp, data, state[typ].prevTime(), data_names);
-      old_grp.closeGroup();
-    }
-    state_grp.writeAttribute("have_old", have_old, H5T_NATIVE_HBOOL);
+    state_grp.writeAttribute(vMInt, vMReal, vMString);
 
-    if (state[typ].hasNewData()) {
-      have_new = true;
-      H5 new_grp = state_grp.createGroup("new");
-      MultiFab* data = &state[typ].newData();
-      writeMultiFabHDF5(new_grp, data, state[typ].curTime());
-      new_grp.closeGroup();
-    }
-    state_grp.writeAttribute("have_new", have_new, H5T_NATIVE_HBOOL);
+    state_grp.closeGroup();
   }
 
 

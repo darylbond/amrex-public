@@ -9,6 +9,7 @@
 #include <AMReX_StateDescriptor.H>
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_Utility.H>
+#include <AMReX_MultiFabUtil.H>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -194,6 +195,49 @@ StateData::restart (std::istream&          is,
 }
 
 #ifdef BL_HDF5
+
+void
+StateData::checkPointHDF5 (H5& h5, hbool_t dump_old)
+{
+    BL_PROFILE("StateData::checkPointHDF5()");
+
+    if (dump_old == true && old_data == nullptr)
+    {
+        dump_old = false;
+    }
+
+    writeBoxOnHDF5(domain, h5, "domain");
+
+    SortedGrids sg(grids, dmap);
+    sg.sortedGrids.writeOnHDF5(h5, "boxes");
+
+    h5.writeAttribute("old_time_start", old_time.start, H5T_NATIVE_DOUBLE);
+    h5.writeAttribute("old_time_stop", old_time.stop, H5T_NATIVE_DOUBLE);
+    h5.writeAttribute("new_time_start", new_time.start, H5T_NATIVE_DOUBLE);
+    h5.writeAttribute("new_time_stop", new_time.stop, H5T_NATIVE_DOUBLE);
+
+    hbool_t dump_new = false;
+    if (desc->store_in_checkpoint()) {
+       BL_ASSERT(new_data);
+       H5 new_grp = h5.createGroup("new");
+       writeMultiFab(new_grp, new_data.get(), new_time.stop);
+       new_grp.closeGroup();
+       dump_new = true;
+
+       if (dump_old) {
+          H5 old_grp = h5.createGroup("old");
+           writeMultiFab(old_grp, old_data.get(), old_time.stop);
+           old_grp.closeGroup();
+       }
+
+    } else {
+      dump_old = false;
+    }
+
+    h5.writeAttribute("has_old", dump_old, H5T_NATIVE_HBOOL);
+    h5.writeAttribute("has_new", dump_new, H5T_NATIVE_HBOOL);
+}
+
 void
 StateData::restartHDF5 (H5& h5,
 			const Box&             p_domain,
@@ -223,25 +267,19 @@ StateData::restartHDF5 (H5& h5,
         BL_ASSERT(amrex::match(grids_in,grids));
     }
 
+    h5.readAttribute("old_time_start", old_time.start, H5T_NATIVE_DOUBLE);
+    h5.readAttribute("old_time_stop", old_time.stop, H5T_NATIVE_DOUBLE);
+    h5.readAttribute("new_time_start", new_time.start, H5T_NATIVE_DOUBLE);
+    h5.readAttribute("new_time_stop", new_time.stop, H5T_NATIVE_DOUBLE);
 
-
-
-
-
-    /*
-
-    is >> old_time.start;
-    is >> old_time.stop;
-    is >> new_time.start;
-    is >> new_time.stop;
-
-    int nsets;
-    is >> nsets;
+    hbool_t has_old, has_new;
+    h5.readAttribute("has_old", has_old, H5T_NATIVE_HBOOL);
+    h5.readAttribute("has_new", has_new, H5T_NATIVE_HBOOL);
 
     new_data.reset(new MultiFab(grids,dmap,desc->nComp(),desc->nExtra(),
                                 MFInfo(), *m_factory));
     old_data.reset();
-    if (nsets == 2) {
+    if (has_old) {
         old_data.reset(new MultiFab(grids,dmap,desc->nComp(),desc->nExtra(),
                                     MFInfo(), *m_factory));
     }
@@ -250,48 +288,21 @@ StateData::restartHDF5 (H5& h5,
     // This assumes that the application will do something with it.
     // We set it to zero in case a compiler complains about uninitialized data.
     //
-    if (nsets == 0) {
-       new_data->setVal(0.0);
+    if (has_new) {
+      H5 new_grp = h5.openGroup("new");
+      readMultiFab(new_grp, new_data.get());
+      new_grp.closeGroup();
+    } else {
+      new_data->setVal(0.0);
     }
 
-    std::string mf_name;
-    std::string FullPathName;
-
-    for(int ns(1); ns <= nsets; ++ns) {
-      MultiFab *whichMF = nullptr;
-      if(ns == 1) {
-        whichMF = new_data.get();
-      } else if(ns == 2) {
-        whichMF = old_data.get();
-      } else {
-        amrex::Abort("**** Error in StateData::restart:  invalid nsets.");
-      }
-
-      is >> mf_name;
-      //
-      // Note that mf_name is relative to the Header file.
-      // We need to prepend the name of the chkfile directory.
-      //
-      FullPathName = chkfile;
-      if ( ! chkfile.empty() && chkfile[chkfile.length()-1] != '/') {
-          FullPathName += '/';
-      }
-      FullPathName += mf_name;
-
-      // ---- check for preread header
-      std::string FullHeaderPathName(FullPathName + "_H");
-      const char *faHeader = 0;
-      if(faHeaderMap != 0) {
-        std::map<std::string, Vector<char> >::iterator fahmIter;
-        fahmIter = faHeaderMap->find(FullHeaderPathName);
-        if(fahmIter != faHeaderMap->end()) {
-          faHeader = fahmIter->second.dataPtr();
-        }
-      }
-
-      VisMF::Read(*whichMF, FullPathName, faHeader);
+    if (has_old) {
+      H5 old_grp = h5.openGroup("old");
+      readMultiFab(old_grp, old_data.get());
+      old_grp.closeGroup();
+    } else {
+      new_data->setVal(0.0);
     }
-    */
 }
 #endif
 
