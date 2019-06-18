@@ -2128,17 +2128,17 @@ Amr::restartHDF5 (const std::string& filename) {
     H5 level_grp = h5.openGroup("level_"+num2str(i));
 
     // problem domain (logical)
-    hid_t box_id = makeBox();
+    hid_t box_id = makeH5Box();
     box_h5_t box;
     level_grp.readAttribute("prob_domain", box, box_id);
-    Box bx = readBox(box);
+    Box bx = readH5Box(box);
     H5Tclose(box_id);
 
     // problem domain (real)
-    hid_t rbox_id = makeRealBox();
+    hid_t rbox_id = makeH5RealBox();
     rbox_h5_t rbox;
     level_grp.readAttribute("real_domain", rbox, rbox_id);
-    RealBox rb = readRealBox(rbox);
+    RealBox rb = readH5RealBox(rbox);
     H5Tclose(rbox_id);
 
     Geometry& geom = Geom(i);
@@ -2146,7 +2146,7 @@ Amr::restartHDF5 (const std::string& filename) {
 
     // refinement ratio
     int rr [AMREX_SPACEDIM];
-    hid_t intvect_id = makeIntVec();
+    hid_t intvect_id = makeH5IntVec();
     level_grp.readAttribute("vec_ref_ratio", rr, intvect_id);
     ref_ratio[i] = IntVect(rr);
 
@@ -2223,7 +2223,9 @@ Amr::restartHDF5 (const std::string& filename) {
    //
    for (int lev(0); lev <= finest_level; ++lev) {
        amr_level[lev].reset((*levelbld)());
-       amr_level[lev]->restartHDF5(*this, h5);
+       H5 level_grp = h5.openGroup("level_"+num2str(lev));
+       amr_level[lev]->restartHDF5(*this, level_grp);
+       level_grp.closeGroup();
        this->SetBoxArray(lev, amr_level[lev]->boxArray());
        this->SetDistributionMap(lev, amr_level[lev]->DistributionMap());
    }

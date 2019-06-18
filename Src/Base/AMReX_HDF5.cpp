@@ -2,7 +2,10 @@
 
 #ifdef BL_HDF5
 
-hid_t makeBox() {
+namespace amrex
+{
+
+hid_t makeH5Box() {
   hid_t box_id = H5Tcreate(H5T_COMPOUND, sizeof(box_h5_t));
 #if BL_SPACEDIM >= 1
   H5Tinsert(box_id, "lo_i", HOFFSET(box_h5_t, lo_i), H5T_NATIVE_INT);
@@ -26,7 +29,7 @@ hid_t makeBox() {
   return box_id;
 }
 
-box_h5_t writeBox(const Box &b) {
+box_h5_t writeH5Box(const Box &b) {
   box_h5_t box;
 #if BL_SPACEDIM >= 1
   box.lo_i = b.smallEnd(0);
@@ -43,7 +46,7 @@ box_h5_t writeBox(const Box &b) {
   return box;
 }
 
-void writeBox(const Box &b, box_h5_t &box) {
+void writeH5Box(const Box &b, box_h5_t &box) {
 #if BL_SPACEDIM >= 1
   box.lo_i = b.smallEnd(0);
   box.hi_i = b.bigEnd(0);
@@ -59,14 +62,34 @@ void writeBox(const Box &b, box_h5_t &box) {
   return;
 }
 
-Box readBox(box_h5_t &box) {
+Box readH5Box(box_h5_t &box) {
   IntVect lo(AMREX_D_DECL(box.lo_i, box.lo_j, box.lo_k));
   IntVect hi(AMREX_D_DECL(box.hi_i, box.hi_j, box.hi_k));
   Box b(lo, hi);
   return b;
 }
 
-hid_t makeRealBox() {
+void writeBoxOnHDF5(const Box& box, H5& h5, const std::string name)
+{
+  hid_t box_id = makeH5Box();
+  box_h5_t h5box = writeH5Box(box);
+  h5.writeAttribute(name, h5box, box_id);
+  H5Tclose(box_id);
+  return;
+}
+
+Box readBoxFromHDF5(H5& h5, const std::string name)
+{
+  hid_t box_id = makeH5Box();
+  box_h5_t box;
+  h5.readAttribute(name, box, box_id);
+  H5Tclose(box_id);
+  Box out = readH5Box(box);
+  return out;
+}
+
+
+hid_t makeH5RealBox() {
   hid_t box_id = H5Tcreate(H5T_COMPOUND, sizeof(rbox_h5_t));
 #if BL_SPACEDIM >= 1
   H5Tinsert(box_id, "lo_x", HOFFSET(rbox_h5_t, lo_x), H5T_NATIVE_DOUBLE);
@@ -90,7 +113,7 @@ hid_t makeRealBox() {
   return box_id;
 }
 
-rbox_h5_t writeRealBox(const RealBox &b) {
+rbox_h5_t writeH5RealBox(const RealBox &b) {
   rbox_h5_t box;
 #if BL_SPACEDIM >= 1
   box.lo_x = b.lo(0);
@@ -107,15 +130,33 @@ rbox_h5_t writeRealBox(const RealBox &b) {
   return box;
 }
 
-RealBox readRealBox(rbox_h5_t &box) {
+RealBox readH5RealBox(rbox_h5_t &box) {
   std::array<Real,AMREX_SPACEDIM> lo = {AMREX_D_DECL(box.lo_x, box.lo_y, box.lo_z)};
   std::array<Real, AMREX_SPACEDIM> hi = {AMREX_D_DECL(box.hi_x, box.hi_y, box.hi_z)};
   RealBox b(lo, hi);
   return b;
 }
 
+void writeRealBoxOnHDF5(const RealBox& box, H5& h5, const std::string name)
+{
+  hid_t rbox_id = makeH5RealBox();
+  rbox_h5_t rbox = writeH5RealBox(box);
+  h5.writeAttribute(name, rbox, rbox_id);
+  H5Tclose(rbox_id);
+  return;
+}
 
-hid_t makeIntVec() {
+RealBox readRealBoxFromHDF5(H5& h5, const std::string name)
+{
+  hid_t rbox_id = makeH5RealBox();
+  rbox_h5_t rbox;
+  h5.readAttribute(name, rbox, rbox_id);
+  H5Tclose(rbox_id);
+  RealBox out = readH5RealBox(rbox);
+  return out;
+}
+
+hid_t makeH5IntVec() {
   hid_t intvect_id = H5Tcreate(H5T_COMPOUND, sizeof(int_h5_t));
 #if BL_SPACEDIM >= 1
   H5Tinsert(intvect_id, "intvecti", HOFFSET(int_h5_t, i), H5T_NATIVE_INT);
@@ -129,7 +170,7 @@ hid_t makeIntVec() {
   return intvect_id;
 }
 
-int_h5_t writeIntVec(const int* in) {
+int_h5_t writeH5IntVec(const int* in) {
   int_h5_t i;
 #if BL_SPACEDIM >= 1
   i.i = in[0];
@@ -143,7 +184,7 @@ int_h5_t writeIntVec(const int* in) {
   return i;
 }
 
-void readIntVec(int_h5_t &in, int *out) {
+void readH5IntVec(int_h5_t &in, int *out) {
 #if BL_SPACEDIM >= 1
   out[0] = in.i;
 #endif
@@ -155,13 +196,13 @@ void readIntVec(int_h5_t &in, int *out) {
 #endif
 }
 
-hid_t makeDoubleVec() {
-hid_t realvect_id = H5Tcreate(H5T_COMPOUND, sizeof(double_h5_t));
+hid_t makeH5RealVec() {
+hid_t realvect_id = H5Tcreate(H5T_COMPOUND, sizeof(real_h5_t));
 #if BL_SPACEDIM >= 1
-  H5Tinsert(realvect_id, "x", HOFFSET(double_h5_t, x), H5T_NATIVE_DOUBLE);
+  H5Tinsert(realvect_id, "x", HOFFSET(real_h5_t, x), H5T_NATIVE_DOUBLE);
 #endif
 #if BL_SPACEDIM >= 2
-  H5Tinsert(realvect_id, "y", HOFFSET(double_h5_t, y), H5T_NATIVE_DOUBLE);
+  H5Tinsert(realvect_id, "y", HOFFSET(real_h5_t, y), H5T_NATIVE_DOUBLE);
 #endif
 #if BL_SPACEDIM >= 3
   H5Tinsert(realvect_id, "z", HOFFSET(double_h5_t, z), H5T_NATIVE_DOUBLE);
@@ -169,8 +210,8 @@ hid_t realvect_id = H5Tcreate(H5T_COMPOUND, sizeof(double_h5_t));
   return realvect_id;
 }
 
-double_h5_t writeDoubleVec(const double* in) {
-  double_h5_t vec;
+real_h5_t writeH5RealVec(const Real *in) {
+  real_h5_t vec;
 #if BL_SPACEDIM >= 1
   vec.x = in[0];
 #endif
@@ -183,7 +224,7 @@ double_h5_t writeDoubleVec(const double* in) {
   return vec;
 }
 
-void readDoubleVec(double_h5_t &in, double *out) {
+void readH5RealVec(real_h5_t &in, double *out) {
 #if BL_SPACEDIM >= 1
   out[0] = in.x;
 #endif
@@ -240,6 +281,14 @@ H5 H5::openGroup(const std::string name) {
 }
 
 void H5::closeGroup() { H5Gclose(obj); }
+
+H5 H5::openDataset(const std::string name) {
+  H5 out;
+  out.obj = H5Dopen2(obj, name.c_str(), H5P_DEFAULT);
+  return out;
+}
+
+void H5::closeDataset() { H5Dclose(obj); }
 
 herr_t H5::writeAttribute(std::map<std::string, int>& m_int,
                          std::map<std::string, double>& m_real,
@@ -358,5 +407,5 @@ void H5::writeString(const std::string name,
 
   return;
 }
-
+}
 #endif

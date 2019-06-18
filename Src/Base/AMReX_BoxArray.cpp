@@ -477,6 +477,67 @@ BoxArray::writeOn (std::ostream& os) const
     return os;
 }
 
+#ifdef BL_HDF5
+void BoxArray::readFromHDF5 (H5& h5, const std::string& name)
+{
+
+  // read the boxes
+  hid_t box_id = makeH5Box();
+  std::vector<box_h5_t> boxes;
+  h5.readType<box_h5_t>(name, boxes, box_id);
+  H5Tclose(box_id);
+
+  // read the index type
+  hid_t intvect_id = makeH5IntVec();
+  int_h5_t type_int;
+
+  H5 dset = h5.openDataset(name);
+  dset.readAttribute("cell_type",type_int, intvect_id);
+  H5Tclose(intvect_id);
+  IntVect ixtype;
+  readH5IntVec(type_int, ixtype.getVect());
+
+  // generate a box list
+  BoxList bl;
+  for (box_h5_t& box : boxes) {
+    Box bx = readH5Box(box);
+    bx.convert(ixtype);
+    bl.push_back(bx);
+  }
+
+  m_ref->define(bl);
+  type_update();
+}
+
+void BoxArray::writeOnHDF5 (H5& h5, const std::string &name)
+{
+
+  // write the box list as data and the index type as an attribute
+
+  // boxes
+  hid_t box_id = makeH5Box();
+  std::vector<box_h5_t> boxes(size());
+  for (int b(0); b < size(); ++b) {
+    writeH5Box((*this)[b], boxes[b]);
+  }
+  h5.writeType(name, {(hsize_t)boxes.size()}, boxes, box_id);
+  H5Tclose(box_id);
+
+  H5 dset = h5.openDataset(name);
+
+
+  // cell type
+  hid_t intvect_id = makeH5IntVec();
+  const IntVect ixtype = (*this).ixType().ixType();
+  int_h5_t type_int = writeH5IntVec(ixtype.getVect());
+  dset.writeAttribute("cell_type", type_int, intvect_id);
+  H5Tclose(intvect_id);
+
+  dset.closeDataset();
+
+}
+#endif
+
 bool
 BoxArray::operator== (const BoxArray& rhs) const noexcept
 {

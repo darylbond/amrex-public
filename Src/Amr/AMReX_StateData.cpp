@@ -193,6 +193,108 @@ StateData::restart (std::istream&          is,
     restartDoit(is, chkfile);
 }
 
+#ifdef BL_HDF5
+void
+StateData::restartHDF5 (H5& h5,
+			const Box&             p_domain,
+			const BoxArray&        grds,
+			const DistributionMapping& dm,
+			const FabFactory<FArrayBox>& factory,
+			const StateDescriptor& d)
+{
+    desc = &d;
+    domain = p_domain;
+    grids = grds;
+    dmap = dm;
+    m_factory.reset(factory.clone());
+
+    // Convert to proper type.
+    IndexType typ(desc->getType());
+    if (!typ.cellCentered()) {
+        domain.convert(typ);
+        grids.convert(typ);
+    }
+
+    {
+        Box domain_in = readBoxFromHDF5(h5, "prob_domain");
+        BoxArray grids_in;
+        grids_in.readFromHDF5(h5, "boxes");
+        BL_ASSERT(domain_in == domain);
+        BL_ASSERT(amrex::match(grids_in,grids));
+    }
+
+
+
+
+
+
+    /*
+
+    is >> old_time.start;
+    is >> old_time.stop;
+    is >> new_time.start;
+    is >> new_time.stop;
+
+    int nsets;
+    is >> nsets;
+
+    new_data.reset(new MultiFab(grids,dmap,desc->nComp(),desc->nExtra(),
+                                MFInfo(), *m_factory));
+    old_data.reset();
+    if (nsets == 2) {
+        old_data.reset(new MultiFab(grids,dmap,desc->nComp(),desc->nExtra(),
+                                    MFInfo(), *m_factory));
+    }
+    //
+    // If no data is written then we just allocate the MF instead of reading it in.
+    // This assumes that the application will do something with it.
+    // We set it to zero in case a compiler complains about uninitialized data.
+    //
+    if (nsets == 0) {
+       new_data->setVal(0.0);
+    }
+
+    std::string mf_name;
+    std::string FullPathName;
+
+    for(int ns(1); ns <= nsets; ++ns) {
+      MultiFab *whichMF = nullptr;
+      if(ns == 1) {
+        whichMF = new_data.get();
+      } else if(ns == 2) {
+        whichMF = old_data.get();
+      } else {
+        amrex::Abort("**** Error in StateData::restart:  invalid nsets.");
+      }
+
+      is >> mf_name;
+      //
+      // Note that mf_name is relative to the Header file.
+      // We need to prepend the name of the chkfile directory.
+      //
+      FullPathName = chkfile;
+      if ( ! chkfile.empty() && chkfile[chkfile.length()-1] != '/') {
+          FullPathName += '/';
+      }
+      FullPathName += mf_name;
+
+      // ---- check for preread header
+      std::string FullHeaderPathName(FullPathName + "_H");
+      const char *faHeader = 0;
+      if(faHeaderMap != 0) {
+        std::map<std::string, Vector<char> >::iterator fahmIter;
+        fahmIter = faHeaderMap->find(FullHeaderPathName);
+        if(fahmIter != faHeaderMap->end()) {
+          faHeader = fahmIter->second.dataPtr();
+        }
+      }
+
+      VisMF::Read(*whichMF, FullPathName, faHeader);
+    }
+    */
+}
+#endif
+
 void 
 StateData::restartDoit (std::istream& is, const std::string& chkfile)
 {

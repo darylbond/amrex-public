@@ -394,14 +394,14 @@ void AmrLevel::writeLevelAttrHDF5(H5& h5)
 
   // cell spacing
   const Real* a_dx = geom.CellSize();
-  hid_t realvect_id = makeDoubleVec();
-  double_h5_t vec_dx = writeDoubleVec(a_dx);
+  hid_t realvect_id = makeH5RealVec();
+  real_h5_t vec_dx = writeH5RealVec(a_dx);
   h5.writeAttribute("vec_dx", vec_dx, realvect_id);
   h5.writeAttribute("dx", vec_dx.x, H5T_NATIVE_DOUBLE);
   H5Tclose(realvect_id);
 
   // refinement ratio
-  hid_t intvect_id = makeIntVec();
+  hid_t intvect_id = makeH5IntVec();
   int rr[BL_SPACEDIM];
   if (level < parent->finestLevel()) {
     IntVect ref_ratio = parent->refRatio(level);
@@ -444,17 +444,11 @@ void AmrLevel::writeLevelAttrHDF5(H5& h5)
   int count = parent->levelCount(level);
   h5.writeAttribute("level_count", count, H5T_NATIVE_INT);
 
-  // problem domain
-  Box bx(geom.Domain());
-  hid_t box_id = makeBox();
-  box_h5_t box = writeBox(bx);
-  h5.writeAttribute("prob_domain", box, box_id);
+  // logical problem domain
+  writeBoxOnHDF5(geom.Domain(), h5, "prob_domain");
 
-  RealBox rbx(geom.ProbDomain());
-  hid_t rbox_id = makeRealBox();
-  rbox_h5_t rbox = writeRealBox(rbx);
-  h5.writeAttribute("real_domain", rbox, rbox_id);
-  H5Tclose(rbox_id);
+  // real problem domain
+  writeRealBoxOnHDF5(geom.ProbDomain(), h5, "real_domain");
 
   // box layout etc
   updateSortedGridDistributions();
@@ -467,14 +461,7 @@ void AmrLevel::writeLevelAttrHDF5(H5& h5)
   h5.writeType("Processors", {(hsize_t)pid.size()}, pid, H5T_NATIVE_INT);
 
   // boxes
-  int vbCount = 0;
-  std::vector<box_h5_t> boxes(sortedGrids.size());
-  for (int b(0); b < sortedGrids.size(); ++b) {
-    writeBox(sortedGrids[b], boxes[vbCount]);
-    ++vbCount;
-  }
-  h5.writeType("boxes", {(hsize_t)boxes.size()}, boxes, box_id);
-  H5Tclose(box_id);
+  sortedGrids.writeOnHDF5(h5, "boxes");
 
 }
 
@@ -486,8 +473,7 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
   int nComp = data_mf->nComp();
 
   //-----------------------------------------------------------------------------------
-  // levels data attributes
-  H5 level_attr = h5.createGroup("data_attributes");
+  // multifabs data attributes
 
   std::map<std::string, int> vMInt;
   std::map<std::string, Real> vMReal;
@@ -498,20 +484,20 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
   for (size_t i=0; i<data_names.size(); ++i) {
     vMString["component_"+num2str(i)] = data_names[i];
   }
+  vMReal["time"] = time;
 
-  level_attr.writeAttribute(vMInt, vMReal, vMString);
+  h5.writeAttribute(vMInt, vMReal, vMString);
 
   // the number of ghost cells saved and output
-  int zeros[AMREX_SPACEDIM] = {AMREX_D_DECL(0,0,0)};
-  hid_t intvect_id = makeIntVec();
-  int_h5_t gint = writeIntVec(zeros);
-  level_attr.writeAttribute<>("ghost", gint, intvect_id);
-  level_attr.writeAttribute("outputGhost", gint, intvect_id);
+  IntVect nGrow = data_mf->nGrowVect();
+  hid_t intvect_id = makeH5IntVec();
+  int_h5_t gint = writeH5IntVec(nGrow.getVect());
+  h5.writeAttribute("ghost", gint, intvect_id);
+  h5.writeAttribute("outputGhost", gint, intvect_id);
 
-  level_attr.closeGroup();
+  // boxes
+  sortedGrids.writeOnHDF5(h5, "boxes");
 
-  // data time stamp
-  h5.writeAttribute("time", time, H5T_NATIVE_DOUBLE);
   //-----------------------------------------------------------------------------------
 
   Vector<unsigned long long> offsets;
@@ -523,11 +509,7 @@ void AmrLevel::writeMultiFabHDF5(H5& h5, MultiFab* data_mf, const Real time,
   h5.writeType("data:offsets="+num2str(id), {(hsize_t)offsets.size()}, offsets,
                      H5T_NATIVE_LLONG);
 
-  //-----------------------------------------------------------------------------------
-
-  //-----------------------------------------------------------------------------------
   // write data
-
   // first gather
   std::vector<Real> a_buffer(procBufferSize[myProc], -1.0);
   long dataCount(0);
@@ -811,56 +793,38 @@ AmrLevel::checkPointHDF5 (H5& h5)
   int num_state = (int) desc_lst.size();
   level_grp.writeAttribute("num_state", num_state, H5T_NATIVE_INT);
 
-  // do we have old/new data?
-  hbool_t have_old = false;
-  hbool_t have_new = false;
-  for (int typ = 0; typ < desc_lst.size(); ++typ) {
-    if (state[typ].hasNewData()) {
-      have_new = true;
-    }
-    if (state[typ].hasOldData()) {
-      have_old = true;
-    }
-    if (have_old && have_new) {
-      break;
-    }
-  }
-
-  level_grp.writeAttribute("have_old", have_old, H5T_NATIVE_HBOOL);
-  level_grp.writeAttribute("have_new", have_new, H5T_NATIVE_HBOOL);
-  H5 state_old, state_new;
-
-  if (have_old) {
-    state_old = level_grp.createGroup("old");
-  }
-  if (have_new) {
-    state_new = level_grp.createGroup("new");
-  }
-
-
-
   // now go through each multifab associated with the state variables and save them out
   std::vector<std::string> data_names;
+  hbool_t have_old, have_new;
   for (int typ = 0; typ < desc_lst.size(); ++typ) {
+
+    H5 state_grp = level_grp.createGroup("state_" + num2str(typ));
+
+    have_old = false;
+    have_new = false;
 
     data_names.resize(0);
     for (int comp=0; comp < desc_lst[typ].nComp(); ++comp) {
       data_names.push_back(desc_lst[typ].name(comp));
     }
 
-    if (have_old) {
-      H5 state_grp = state_old.createGroup("state_" + num2str(typ));
+    if (state[typ].hasOldData()) {
+      have_old = true;
+      H5 old_grp = state_grp.createGroup("old");
       MultiFab* data = &state[typ].oldData();
-      writeMultiFabHDF5(state_grp, data, state[typ].prevTime(), data_names);
-      state_grp.closeGroup();
+      writeMultiFabHDF5(old_grp, data, state[typ].prevTime(), data_names);
+      old_grp.closeGroup();
     }
+    state_grp.writeAttribute("have_old", have_old, H5T_NATIVE_HBOOL);
 
-    if (have_new) {
-      H5 state_grp = state_new.createGroup("state_" + num2str(typ));
+    if (state[typ].hasNewData()) {
+      have_new = true;
+      H5 new_grp = state_grp.createGroup("new");
       MultiFab* data = &state[typ].newData();
-      writeMultiFabHDF5(state_grp, data, state[typ].curTime());
-      state_grp.closeGroup();
+      writeMultiFabHDF5(new_grp, data, state[typ].curTime());
+      new_grp.closeGroup();
     }
+    state_grp.writeAttribute("have_new", have_new, H5T_NATIVE_HBOOL);
   }
 
 
@@ -876,19 +840,8 @@ void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
 
 
     // problem domain (logical)
-    hid_t box_id = makeBox();
-    box_h5_t box;
-    h5.readAttribute("prob_domain", box, box_id);
-    Box bx = readBox(box);
-    H5Tclose(box_id);
-
-    // problem domain (real)
-    hid_t rbox_id = makeRealBox();
-    rbox_h5_t rbox;
-    h5.readAttribute("real_domain", rbox, rbox_id);
-    RealBox rb = readRealBox(rbox);
-    H5Tclose(rbox_id);
-
+    Box bx = readBoxFromHDF5(h5, "prob_domain");
+    RealBox rb = readRealBoxFromHDF5(h5, "real_domain");
     geom.define(bx, &rb);
 
 
@@ -904,12 +857,11 @@ void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
         fine_ratio = parent->refRatio(level);
     }
 
-/*
-    grids.readFrom(is);
-
+    // read in the boxes from file
+    grids.readFromHDF5(h5, "boxes");
 
     int nstate;
-    is >> nstate;
+    h5.readAttribute("num_state", nstate, H5T_NATIVE_INT);
     int ndesc = desc_lst.size();
 
     Vector<int> state_in_checkpoint(ndesc, 1);
@@ -936,8 +888,10 @@ void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
     for (int i = 0; i < ndesc; ++i)
     {
         if (state_in_checkpoint[i]) {
-            state[i].restart(is, geom.Domain(), grids, dmap, *m_factory,
-                             desc_lst[i], papa.theRestartFile());
+            H5 state_grp = h5.openGroup("state_"+num2str(i));
+            state[i].restartHDF5(state_grp, geom.Domain(), grids, dmap, *m_factory,
+                             desc_lst[i]);
+            state_grp.closeGroup();
         }
     }
 
@@ -946,7 +900,6 @@ void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
     post_step_regrid = 0;
 
     finishConstructor();
-    */
 }
 
 

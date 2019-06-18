@@ -12,9 +12,14 @@
 #include <AMReX_Array.H>
 #include <AMReX_Vector.H>
 
+#ifdef BL_HDF5
+#include <AMReX_HDF5.H>
+#endif
+
 namespace amrex
 {
     class BoxArray;
+
 
     //! Make a BoxArray from the the complement of b2 in b1in.
     BoxArray boxComplement (const Box& b1in, const Box& b2);
@@ -205,6 +210,10 @@ struct DefaultBATransformer final
 
 class MFIter;
 
+#ifdef BL_HDF5
+class H5;
+#endif
+
 class BoxArray
 {
 public:
@@ -285,6 +294,11 @@ public:
 
     //! Output this BoxArray to a checkpoint file.
     std::ostream& writeOn (std::ostream&) const;
+
+#ifdef BL_HDF5
+    void readFromHDF5 (H5& h5, const std::string &name);
+    void writeOnHDF5 (H5& h5, const std::string &name);
+#endif
 
     //! Are the BoxArrays equal?
     bool operator== (const BoxArray& rhs) const noexcept;
