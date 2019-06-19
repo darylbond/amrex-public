@@ -7,6 +7,7 @@
 #include <AMReX_Box.H>
 #include <AMReX_RealBox.H>
 #include <hdf5.h>
+#include <list>
 
 namespace amrex {
 
@@ -101,9 +102,10 @@ void readH5RealVec(real_h5_t &in, double* out);
 
 class H5 {
  public:
-  hid_t obj;  // the data object on which we will operate, may be a file,
+  hid_t m_obj;  // the data object on which we will operate, may be a file,
               // dataset, etc
-  herr_t status;
+  herr_t m_status;
+  std::string m_name;
 
   H5();
   H5(std::string name);
@@ -112,7 +114,7 @@ class H5 {
   ~H5();
 
   void createFile(const std::string name, MPI_Comm comm = MPI_COMM_WORLD);
-  void openFile(const std::string name);
+  void openFile(const std::string name, MPI_Comm comm = MPI_COMM_WORLD);
   void closeFile();
 
   H5 createGroup(const std::string name);
@@ -127,15 +129,15 @@ class H5 {
   void writeAttribute(const std::string& vName, T& vData, long H5Ttype) {
     hid_t aid = H5Screate(H5S_SCALAR);
     hid_t attr;
-    if (H5Aexists(obj, vName.c_str())) {
-      attr = H5Aopen(obj, vName.c_str(),H5P_DEFAULT);
+    if (H5Aexists(m_obj, vName.c_str())) {
+      attr = H5Aopen(m_obj, vName.c_str(),H5P_DEFAULT);
     } else {
-      attr = H5Acreate2(obj, vName.c_str(), H5Ttype, aid, H5P_DEFAULT, H5P_DEFAULT);
+      attr = H5Acreate2(m_obj, vName.c_str(), H5Ttype, aid, H5P_DEFAULT, H5P_DEFAULT);
     }
     if (attr < 0) {
       amrex::Abort(" Problem writing attribute " + vName);
     }
-    status = H5Awrite(attr, H5Ttype, &vData);
+    m_status = H5Awrite(attr, H5Ttype, &vData);
     H5Sclose(aid);
     H5Aclose(attr);
   }
@@ -144,7 +146,7 @@ class H5 {
   herr_t readAttribute(const std::string& vName, T& vData, long H5Ttype) {
     herr_t ret;
     // check if the attribute exists
-    ret = H5Aexists(obj, vName.c_str());
+    ret = H5Aexists(m_obj, vName.c_str());
     if (ret == 0) {
       amrex::Abort(" Attribute " + vName + "does not exist");
     }
@@ -153,7 +155,7 @@ class H5 {
     }
 
     // open the attribute
-    hid_t attr = H5Aopen(obj, vName.c_str(), H5P_DEFAULT);
+    hid_t attr = H5Aopen(m_obj, vName.c_str(), H5P_DEFAULT);
 
     // read it
     ret = H5Aread(attr, H5Ttype, &vData);
@@ -168,7 +170,7 @@ class H5 {
   herr_t readAttribute(const std::string& vName, std::vector<T>& vData, long H5Ttype) {
     herr_t ret;
     // check if the attribute exists
-    ret = H5Aexists(obj, vName.c_str());
+    ret = H5Aexists(m_obj, vName.c_str());
     if (ret = 0) {
       amrex::Abort(" Attribute " + vName + "does not exist");
     }
@@ -177,7 +179,7 @@ class H5 {
     }
 
     // open the attribute
-    hid_t attr = H5Aopen(obj, vName.c_str(), H5P_DEFAULT);
+    hid_t attr = H5Aopen(m_obj, vName.c_str(), H5P_DEFAULT);
 
     // get the size of the attribute
     hsize_t size =  H5Aget_storage_size(attr);
@@ -198,30 +200,33 @@ class H5 {
   template <class T>
   void readType(const std::string name, std::vector<T>& data, long H5Ttype) {
 
-    // open dataset
-    hid_t dset = H5Dopen2(obj, name.c_str(), H5P_DEFAULT);
+    hid_t dset, plist, space;
 
-    hid_t plist = H5Pcreate(H5P_DATASET_XFER);
+    // open dataset
+    dset = H5Dopen2(m_obj, name.c_str(), H5P_DEFAULT);
+
+    if (dset < 0) {
+      amrex::Abort("Error: H5Dopen2 failed to open " + name);
+    }
+
+    plist = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(plist, H5FD_MPIO_COLLECTIVE);
     //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
 
     // get how big the buffer needs to be
-    hsize_t size;
-    herr_t err = H5Dvlen_get_buf_size(dset, H5Ttype, H5S_ALL, &size );
+    space = H5Dget_space(dset);
+    hssize_t npoints = H5Sget_simple_extent_npoints(space);
 
-    data.resize(size/sizeof(H5Ttype));
-
-    if (err < 0) {
-      amrex::Abort("Error: failed to read " + name);
-    }
+    data.resize(npoints);
 
     // read dataset
-    err = H5Dread(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data.data());
+    m_status = H5Dread(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data.data());
 
     H5Dclose(dset);
     H5Pclose(plist);
+    H5Sclose(space);
 
-    if (err < 0) {
+    if (m_status < 0) {
       amrex::Abort("Error: failed to read " + name);
     }
 
@@ -233,21 +238,20 @@ class H5 {
                 const std::vector<T>& data, long H5Ttype) {
 
     // if it alrready exists, silently return
-    if (H5Lexists(obj, name.c_str(), H5P_DEFAULT) > 0) {
+    if (H5Lexists(m_obj, name.c_str(), H5P_DEFAULT) > 0) {
       return;
     }
 
-    hid_t dset;
-    hid_t plist;
+    hid_t dset, plist, space;
 
     plist = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(plist, H5FD_MPIO_COLLECTIVE);
     //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
-    hid_t space = H5Screate_simple(dims.size(), dims.data(), NULL);
-    dset = H5Dcreate(obj, name.c_str(), H5Ttype, space, H5P_DEFAULT,
+    space = H5Screate_simple(dims.size(), dims.data(), NULL);
+    dset = H5Dcreate(m_obj, name.c_str(), H5Ttype, space, H5P_DEFAULT,
                    H5P_DEFAULT, H5P_DEFAULT);
 
-    status = H5Dwrite(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data.data());
+    m_status = H5Dwrite(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data.data());
 
     H5Dclose(dset);
     H5Sclose(space);
@@ -263,21 +267,20 @@ class H5 {
                 T* data, long H5Ttype) {
 
     // if it alrready exists, silently return
-    if (H5Lexists(obj, name.c_str(), H5P_DEFAULT) > 0) {
+    if (H5Lexists(m_obj, name.c_str(), H5P_DEFAULT) > 0) {
       return;
     }
 
-    hid_t dset;
-    hid_t plist;
+    hid_t dset, plist, space;
 
-      plist = H5Pcreate(H5P_DATASET_XFER);
-      H5Pset_dxpl_mpio(plist, H5FD_MPIO_COLLECTIVE);
-      //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
-      hid_t space = H5Screate_simple(dims.size(), dims.data(), NULL);
-      dset = H5Dcreate(obj, name.c_str(), H5Ttype, space, H5P_DEFAULT,
-                     H5P_DEFAULT, H5P_DEFAULT);
+    plist = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(plist, H5FD_MPIO_COLLECTIVE);
+    //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
+    space = H5Screate_simple(dims.size(), dims.data(), NULL);
+    dset = H5Dcreate(m_obj, name.c_str(), H5Ttype, space, H5P_DEFAULT,
+                   H5P_DEFAULT, H5P_DEFAULT);
 
-    status = H5Dwrite(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data);
+    m_status = H5Dwrite(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data);
 
     H5Dclose(dset);
     H5Sclose(space);
@@ -293,32 +296,33 @@ class H5 {
                 const std::vector<hsize_t>& offset, std::vector<T>& data,
                 hid_t type) {
     // generate the dataset
-    hid_t space, dset;
+    hid_t space, dset, memspace, filespace, plist_id;
+
     space = H5Screate_simple(full_dims.size(), full_dims.data(), NULL);
-    dset = H5Dcreate(obj, name.c_str(), type, space, H5P_DEFAULT, H5P_DEFAULT,
+    dset = H5Dcreate(m_obj, name.c_str(), type, space, H5P_DEFAULT, H5P_DEFAULT,
                      H5P_DEFAULT);
-    H5Sclose(space);
+
 
     // now write the bit that we have passed in
 
     // create the space associated with this slab
-    hid_t memspace =
+    memspace =
         H5Screate_simple(local_dims.size(), local_dims.data(), NULL);
 
     // Select hyperslab in the file.
-    hid_t filespace = H5Dget_space(dset);
+    filespace = H5Dget_space(dset);
     H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset.data(), NULL,
                         local_dims.data(), NULL);
 
-    hid_t plist_id;
     plist_id = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
     //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
 
     //    if (data.size()) {
-    status = H5Dwrite(dset, type, memspace, filespace, plist_id, data.data());
+    m_status = H5Dwrite(dset, type, memspace, filespace, plist_id, data.data());
     //    }
 
+    H5Sclose(space);
     H5Sclose(filespace);
     H5Sclose(memspace);
     H5Pclose(plist_id);
@@ -326,33 +330,36 @@ class H5 {
   }
 
   template <class T>
-  void readSlab(const std::string name, const std::vector<hsize_t>& full_dims,
-                const std::vector<hsize_t>& local_dims,
-                const std::vector<hsize_t>& offset, std::vector<T>& data,
-                hid_t type) {
+  void readSlab(const std::string name, const std::vector<hsize_t>& local_dims,
+                const std::vector<hsize_t>& offset, std::vector<T>& data) {
     // open the dataset
-    hid_t dset = H5Dopen2(obj, name.c_str(), H5P_DEFAULT);
+    hid_t dset, dataspace, filespace, plist_id;
 
-    // define the hyperslab in the source
-    hid_t filespace = H5Screate_simple(local_dims.size(), local_dims.data(), NULL);
-    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset.data(), NULL,
-                        local_dims.data(), NULL);
+    dset = H5Dopen2(m_obj, name.c_str(), H5P_DEFAULT);
 
-    // define the hyperslab in the destination
-    hid_t memspace = H5Screate_simple(full_dims.size(), full_dims.data(), NULL);
-    H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset.data(), NULL,
-                        full_dims.data(), NULL);
+    dataspace = H5Dget_space(dset);
+    filespace = H5Screate_simple(local_dims.size(), local_dims.data(), NULL);
+    H5Sselect_hyperslab(dataspace, H5S_SELECT_SET, offset.data(), NULL, local_dims.data(), NULL);
 
-    hid_t plist_id;
     plist_id = H5Pcreate(H5P_DATASET_XFER);
-    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
-    //    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
+    //H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
 
-    herr_t err = H5Dread(dset, type, memspace, filespace, plist_id, data.data());
+    // make sure the buffer is the correct size
+    hsize_t size=1;
+    for (hsize_t d : local_dims) {
+      size *= d;
+    }
+    data.resize(size);
 
+    m_status = H5Dread(dset, H5Dget_type(dset), filespace, dataspace, plist_id, data.data());
 
+    if (m_status < 0) {
+      amrex::Abort("ERROR: AMReX_HDF5::readSlab : H5Dread failed to read " + name);
+    }
+
+    H5Sclose(dataspace);
     H5Sclose(filespace);
-    H5Sclose(memspace);
     H5Pclose(plist_id);
     H5Dclose(dset);
   }
@@ -364,6 +371,10 @@ class H5 {
   void writeString(const std::string name, const std::string& data);
   void writeString(const std::string name, const std::vector<std::string>& data);
 
+  private:
+   static std::list<std::string> tracker;
+   void track(const std::string& name);
+   void discard(const std::string& name);
 
 };
 

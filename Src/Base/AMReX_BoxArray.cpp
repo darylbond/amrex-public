@@ -493,6 +493,7 @@ void BoxArray::readFromHDF5 (H5& h5, const std::string& name)
 
   H5 dset = h5.openDataset(name);
   dset.readAttribute("cell_type",type_int, intvect_id);
+  dset.closeDataset();
   H5Tclose(intvect_id);
   IntVect ixtype;
   readH5IntVec(type_int, ixtype.getVect());

@@ -1050,8 +1050,6 @@ void Amr::writePlotFileHDF5() {
     amr_level[k]->writePlotFilePost();
   }
 
-  output_h5.closeFile();
-
   last_plotfile = level_steps[0];
 
   if (verbose > 0) {
@@ -1064,6 +1062,8 @@ void Amr::writePlotFileHDF5() {
                    << "\n\n";
   }
   ParallelDescriptor::Barrier("Amr::writePlotFile::end");
+
+  output_h5.closeFile();
 
   BL_PROFILE_REGION_STOP("Amr::writePlotFileHDF5()");
 }
@@ -2058,6 +2058,8 @@ Amr::checkPointHDF5 ()
   }
   ParallelDescriptor::Barrier("Amr::checkPoint::end");
 
+  output_h5.closeFile();
+
 
   BL_PROFILE_REGION_STOP("Amr::checkPoint()");
 }
@@ -2097,7 +2099,7 @@ Amr::restartHDF5 (const std::string& filename) {
 
   H5 h5;
 
-  h5.openFile(filename);
+  h5.openFile(filename, ParallelDescriptor::Communicator());
 
   //
   // Read global data.
@@ -2141,8 +2143,8 @@ Amr::restartHDF5 (const std::string& filename) {
     RealBox rb = readH5RealBox(rbox);
     H5Tclose(rbox_id);
 
-    Geometry& geom = Geom(i);
-    geom.define(bx, &rb);
+    Geometry& gm = Geom(i);
+    gm.define(bx, &rb);
 
     // refinement ratio
     int rr [AMREX_SPACEDIM];
@@ -2266,6 +2268,11 @@ Amr::restartHDF5 (const std::string& filename) {
 
       amrex::Print() << "Restart time = " << dRestartTime << " seconds." << '\n';
   }
+
+  ParallelDescriptor::Barrier("Amr::restartHDF5::end");
+
+  h5.closeFile();
+
   BL_PROFILE_REGION_STOP("Amr::restart()");
 }
 

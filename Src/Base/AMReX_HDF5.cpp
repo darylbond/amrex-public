@@ -1,4 +1,5 @@
 #include <AMReX_HDF5.H>
+#include <iostream>
 
 #ifdef BL_HDF5
 
@@ -240,58 +241,100 @@ void readH5RealVec(real_h5_t &in, double *out) {
 // H5
 //==================================================================================
 
+
 H5::H5() {}
 
 H5::H5(std::string name) { createFile(name); }
 
 H5::H5(std::string name, MPI_Comm comm) { createFile(name, comm); }
 
-H5::H5(hid_t h5) { obj = h5; }
+H5::H5(hid_t h5) { m_obj = h5; }
 
 H5::~H5() {}
 
 void H5::createFile(const std::string name, MPI_Comm comm) {
   // assume MPI already initialized
-  hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-  H5Pset_fapl_mpio(plist_id, comm, MPI_INFO_NULL);
+  hid_t file_access = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_fapl_mpio(file_access, comm, MPI_INFO_NULL);
 
-  obj = H5Fcreate(name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
-  H5Pclose(plist_id);
+  m_obj = H5Fcreate(name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, file_access);
+  m_name = name;
+  H5Pclose(file_access);
+
+  track(name);
 
   return;
 }
 
-void H5::openFile(const std::string name) {
-  obj = H5Fopen(name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
-  if (obj < 0) {
+void H5::openFile(const std::string name, MPI_Comm comm) {
+
+
+  hid_t file_access = H5Pcreate (H5P_FILE_ACCESS);
+  H5Pset_fapl_mpio(file_access,  comm, MPI_INFO_NULL);
+
+
+  m_obj = H5Fopen(name.c_str(), H5F_ACC_RDWR, file_access);
+  if (m_obj < 0) {
     amrex::Abort("Unbale to open " + name);
   }
+
+  m_name = name;
+
+  H5Pclose(file_access);
+
+  track(name);
+
   return;
 }
 
-void H5::closeFile() { H5Fclose(obj); }
+void H5::closeFile() {
+  discard(m_name);
+#ifdef DEBUG
+  if (!tracker.empty()) {
+    std::cout << "H5 tracker outstanding items";
+    for (auto& name : tracker) {
+      std::cout << name << "\n";
+    }
+  }
+#endif
+
+  H5Fclose(m_obj);
+
+}
 
 H5 H5::createGroup(const std::string name) {
   H5 out;
-  out.obj = H5Gcreate(obj, name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  out.m_obj = H5Gcreate(m_obj, name.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  out.m_name = name;
+  track(name);
   return out;
 }
 
 H5 H5::openGroup(const std::string name) {
   H5 out;
-  out.obj = H5Gopen2(obj, name.c_str(), H5P_DEFAULT);
+  out.m_obj = H5Gopen2(m_obj, name.c_str(), H5P_DEFAULT);
+  out.m_name = name;
+  track(name);
   return out;
 }
 
-void H5::closeGroup() { H5Gclose(obj); }
+void H5::closeGroup() {
+  H5Gclose(m_obj);
+  discard(m_name);
+}
 
 H5 H5::openDataset(const std::string name) {
   H5 out;
-  out.obj = H5Dopen2(obj, name.c_str(), H5P_DEFAULT);
+  out.m_obj = H5Dopen2(m_obj, name.c_str(), H5P_DEFAULT);
+  out.m_name = name;
+  track(name);
   return out;
 }
 
-void H5::closeDataset() { H5Dclose(obj); }
+void H5::closeDataset() {
+  H5Dclose(m_obj);
+  discard(m_name);
+}
 
 herr_t H5::writeAttribute(std::map<std::string, int>& m_int,
                          std::map<std::string, double>& m_real,
@@ -306,11 +349,11 @@ herr_t H5::writeAttribute(std::map<std::string, int>& m_int,
        p != mapName.end(); ++p) {                                             \
     hid_t aid = H5Screate(H5S_SCALAR);                                        \
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);                                    \
-    hid_t attr = H5Acreate2(obj, p->first.c_str(), H5Ttype, aid, H5P_DEFAULT, \
+    hid_t attr = H5Acreate2(m_obj, p->first.c_str(), H5Ttype, aid, H5P_DEFAULT, \
                             H5P_DEFAULT);                                     \
     if (attr < 0) {                                                           \
-      H5Adelete(obj, p->first.c_str());                                       \
-      attr = H5Acreate2(obj, p->first.c_str(), H5Ttype, aid, H5P_DEFAULT,     \
+      H5Adelete(m_obj, p->first.c_str());                                       \
+      attr = H5Acreate2(m_obj, p->first.c_str(), H5Ttype, aid, H5P_DEFAULT,     \
                         H5P_DEFAULT);                                         \
       if (attr < 0) {                                                         \
         amrex::Abort(" Problem writing attribute " + p->first);       \
@@ -333,11 +376,11 @@ herr_t H5::writeAttribute(std::map<std::string, int>& m_int,
     H5Tset_size(s_type, p->second.length());  // extra requirement for strings
     hid_t aid = H5Screate(H5S_SCALAR);
     H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
-    hid_t attr = H5Acreate2(obj, p->first.c_str(), s_type, aid, H5P_DEFAULT,
+    hid_t attr = H5Acreate2(m_obj, p->first.c_str(), s_type, aid, H5P_DEFAULT,
                             H5P_DEFAULT);
     if (attr < 0) {
-      H5Adelete(obj, p->first.c_str());
-      attr = H5Acreate2(obj, p->first.c_str(), s_type, aid, H5P_DEFAULT,
+      H5Adelete(m_obj, p->first.c_str());
+      attr = H5Acreate2(m_obj, p->first.c_str(), s_type, aid, H5P_DEFAULT,
                         H5P_DEFAULT);
       if (attr < 0) {
         amrex::Abort(" Problem writing attribute " + p->first);
@@ -366,7 +409,7 @@ void H5::writeString(const std::string name, const std::string& data) {
   hsize_t dims[1] = {1};
   space = H5Screate_simple(1, dims, NULL);
 
-  dset = H5Dcreate(obj, name.c_str(), type, space, H5P_DEFAULT, H5P_DEFAULT,
+  dset = H5Dcreate(m_obj, name.c_str(), type, space, H5P_DEFAULT, H5P_DEFAULT,
                    H5P_DEFAULT);
   H5Dwrite(dset, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data());
 
@@ -400,7 +443,7 @@ void H5::writeString(const std::string name,
 
   space = H5Screate_simple(1, dims, NULL);
 
-  dset = H5Dcreate(obj, name.c_str(), type, space, H5P_DEFAULT, H5P_DEFAULT,
+  dset = H5Dcreate(m_obj, name.c_str(), type, space, H5P_DEFAULT, H5P_DEFAULT,
                    H5P_DEFAULT);
   H5Dwrite(dset, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, buffer.data());
 
@@ -410,6 +453,23 @@ void H5::writeString(const std::string name,
 
   return;
 }
+
+std::list<std::string> H5::tracker = {};
+void H5::track(const std::string& name)
+{
+#ifdef DEBUG
+  tracker.push_back(name);
+#endif
+}
+
+void H5::discard(const std::string& name)
+{
+#ifdef DEBUG
+  tracker.remove(name);
+#endif
+}
+
+
 }
 
 #endif

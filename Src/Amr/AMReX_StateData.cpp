@@ -260,7 +260,7 @@ StateData::restartHDF5 (H5& h5,
     }
 
     {
-        Box domain_in = readBoxFromHDF5(h5, "prob_domain");
+        Box domain_in = readBoxFromHDF5(h5, "domain");
         BoxArray grids_in;
         grids_in.readFromHDF5(h5, "boxes");
         BL_ASSERT(domain_in == domain);

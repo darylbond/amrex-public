@@ -849,7 +849,7 @@ namespace amrex
       // box layout etc
       SortedGrids sg(grids, dmap);
       sg.update(data_mf);
-      //  sg.sortedGrids.writeOnHDF5(h5, "boxes"); // <- this should already be written by writeLevelAttr
+      sg.sortedGrids.writeOnHDF5(h5, "boxes");
 
       // offsets
       h5.writeType("data:offsets=0", {(hsize_t)sg.offsets.size()}, sg.offsets,
@@ -882,34 +882,44 @@ namespace amrex
     }
 
     void readMultiFab(H5& h5, MultiFab* data_mf) {
-      int myProc(ParallelDescriptor::MyProc());
+
+      // get the boxes
+      BoxArray boxes;
+      boxes.readFromHDF5(h5, "boxes");
+
+      // get the data offsets
+      Vector<unsigned long long> offsets;
+      h5.readType("data:offsets=0", offsets, H5T_NATIVE_LLONG);
+
       int nComp = data_mf->nComp();
 
-      const BoxArray& grids = data_mf->boxArray();
-      const DistributionMapping& dmap = data_mf->DistributionMap();
+      std::vector<Real> buffer;
+      std::vector<hsize_t> local_dims(1);
+      std::vector<hsize_t> offset(1);
 
-
-      // box layout etc
-      SortedGrids sg(grids, dmap);
-      sg.update(data_mf);
-
-      // get the data from file
-      std::vector<Real> a_buffer(sg.procBufferSize[myProc], -1.0);
-      std::vector<hsize_t> full_dims = {(hsize_t)sg.offsets.back()};
-      std::vector<hsize_t> local_dims = {(hsize_t)sg.procBufferSize[myProc]};
-      std::vector<hsize_t> offset = {(hsize_t)sg.procOffsets[myProc]};
-
-      h5.readSlab("data:datatype=0", full_dims, local_dims, offset, a_buffer,
-                   H5T_NATIVE_DOUBLE);
-
-
-      // broadcast to multifab
-      long dataCount(0);
+      // retrieve data and load into multifab
       for (MFIter mfi(*data_mf); mfi.isValid(); ++mfi) {
           const Box& vbox = mfi.validbox();
+
+          // get offset in the hdf5 file for the current box
+          for (int i=0; i<boxes.size(); ++i) {
+            if (boxes.get(i) == vbox) {
+              offset[0] = offsets[i];
+              local_dims[0] = (offsets[i+1] - 1) - offsets[i];
+              break;
+            }
+            if (i == boxes.size()-1) {
+              amrex::Abort("Error: readMultiFab() unable to find correct box in hdf5 file");
+            }
+          }
+
+          // get the data from the hdf5 file
+          h5.readSlab("data:datatype=0", local_dims, offset, buffer);
+
+          // load the data into the multifab
           Real* dataPtr = (*data_mf)[mfi].dataPtr();
           for (int i(0); i < vbox.numPts() * nComp; ++i) {
-              dataPtr[i] = a_buffer[dataCount++];
+              dataPtr[i] = buffer[i];
             }
         }
     }
