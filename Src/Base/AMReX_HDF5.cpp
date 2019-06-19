@@ -81,10 +81,8 @@ void writeBoxOnHDF5(const Box& box, H5& h5, const std::string name)
 
 Box readBoxFromHDF5(H5& h5, const std::string name)
 {
-  hid_t box_id = makeH5Box();
   box_h5_t box;
-  h5.readAttribute(name, box, box_id);
-  H5Tclose(box_id);
+  h5.readAttribute(name, box);
   Box out = readH5Box(box);
   return out;
 }
@@ -149,10 +147,8 @@ void writeRealBoxOnHDF5(const RealBox& box, H5& h5, const std::string name)
 
 RealBox readRealBoxFromHDF5(H5& h5, const std::string name)
 {
-  hid_t rbox_id = makeH5RealBox();
   rbox_h5_t rbox;
-  h5.readAttribute(name, rbox, rbox_id);
-  H5Tclose(rbox_id);
+  h5.readAttribute(name, rbox);
   RealBox out = readH5RealBox(rbox);
   return out;
 }
@@ -289,7 +285,7 @@ void H5::openFile(const std::string name, MPI_Comm comm) {
 
 void H5::closeFile() {
   discard(m_name);
-#ifdef DEBUG
+#ifdef AMREX_DEBUG
   if (!tracker.empty()) {
     std::cout << "H5 tracker outstanding items";
     for (auto& name : tracker) {
@@ -457,14 +453,14 @@ void H5::writeString(const std::string name,
 std::list<std::string> H5::tracker = {};
 void H5::track(const std::string& name)
 {
-#ifdef DEBUG
+#ifdef AMREX_DEBUG
   tracker.push_back(name);
 #endif
 }
 
 void H5::discard(const std::string& name)
 {
-#ifdef DEBUG
+#ifdef AMREX_DEBUG
   tracker.remove(name);
 #endif
 }

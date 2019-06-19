@@ -236,6 +236,7 @@ StateData::checkPointHDF5 (H5& h5, hbool_t dump_old)
 
     h5.writeAttribute("has_old", dump_old, H5T_NATIVE_HBOOL);
     h5.writeAttribute("has_new", dump_new, H5T_NATIVE_HBOOL);
+
 }
 
 void
@@ -267,14 +268,14 @@ StateData::restartHDF5 (H5& h5,
         BL_ASSERT(amrex::match(grids_in,grids));
     }
 
-    h5.readAttribute("old_time_start", old_time.start, H5T_NATIVE_DOUBLE);
-    h5.readAttribute("old_time_stop", old_time.stop, H5T_NATIVE_DOUBLE);
-    h5.readAttribute("new_time_start", new_time.start, H5T_NATIVE_DOUBLE);
-    h5.readAttribute("new_time_stop", new_time.stop, H5T_NATIVE_DOUBLE);
+    h5.readAttribute("old_time_start", old_time.start);
+    h5.readAttribute("old_time_stop", old_time.stop);
+    h5.readAttribute("new_time_start", new_time.start);
+    h5.readAttribute("new_time_stop", new_time.stop);
 
     hbool_t has_old, has_new;
-    h5.readAttribute("has_old", has_old, H5T_NATIVE_HBOOL);
-    h5.readAttribute("has_new", has_new, H5T_NATIVE_HBOOL);
+    h5.readAttribute("has_old", has_old);
+    h5.readAttribute("has_new", has_new);
 
     new_data.reset(new MultiFab(grids,dmap,desc->nComp(),desc->nExtra(),
                                 MFInfo(), *m_factory));
@@ -300,9 +301,8 @@ StateData::restartHDF5 (H5& h5,
       H5 old_grp = h5.openGroup("old");
       readMultiFab(old_grp, old_data.get());
       old_grp.closeGroup();
-    } else {
-      new_data->setVal(0.0);
     }
+
 }
 #endif
 

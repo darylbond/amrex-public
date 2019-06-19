@@ -445,6 +445,7 @@ protected:
     int              check_int;       //!< How often checkpoint (# time steps).
     Real             check_per;       //!< How often checkpoint (units of time).
     std::string      check_file_root; //!< Root name of checkpoint file.
+    std::string      check_file_type; //!< Type of file output
     int              last_plotfile;   //!< Step number of previous plotfile.
     int              last_smallplotfile;   //!< Step number of previous small plotfile.
     int              plot_int;        //!< How often plotfile (# of time steps)
@@ -457,6 +458,7 @@ protected:
     int              file_name_digits; //!< How many digits to use in the plotfile and checkpoint names
     int              message_int;     //!< How often checking messages touched by user, such as "stop_run"
     std::string      plot_file_root;  //!< Root name of plotfile.
+    std::string      plot_file_type;  //!< Type of file output
     std::string      small_plot_file_root;  //!< Root name of small plotfile.
 
     int              which_level_being_advanced; //!< Only >=0 if we are in Amr::timeStep(level,...)

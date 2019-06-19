@@ -875,8 +875,10 @@ Amr::writePlotFile ()
     }
 
 #ifdef BL_HDF5
-    writePlotFileHDF5();
-    return;
+    if (plot_file_type == "HDF5") {
+      writePlotFileHDF5();
+      return;
+    }
 #endif
 
     BL_PROFILE_REGION_START("Amr::writePlotFile()");
@@ -1036,18 +1038,18 @@ void Amr::writePlotFileHDF5() {
   output_h5.createFile(output_name, ParallelDescriptor::Communicator());
 
   for (int k(0); k <= finest_level; ++k) {
-    amr_level[k]->writePlotFilePre();
+    amr_level[k]->writePlotHDF5Pre();
   }
 
   MultiFab plot_data;
   std::vector<std::string> plot_names;
   for (int k(0); k <= finest_level; ++k) {
     amr_level[k]->getPlotData(plot_data, plot_names);
-    amr_level[k]->writePlotFile(plot_data, plot_names);
+    amr_level[k]->writePlotHDF5(plot_data, plot_names);
   }
 
   for (int k(0); k <= finest_level; ++k) {
-    amr_level[k]->writePlotFilePost();
+    amr_level[k]->writePlotHDF5Post();
   }
 
   last_plotfile = level_steps[0];
@@ -1513,10 +1515,16 @@ Amr::FinalizeInit (Real              strt_time,
 void
 Amr::restart (const std::string& filename)
 {
+
+  if (filename.find("hdf5") != std::string::npos) {
 #ifdef BL_HDF5
     restartHDF5(filename);
     return;
+#else
+    amrex::Abort("Amr::restart() not compiled with HDF5 capability")
 #endif
+  }
+
     BL_PROFILE_REGION_START("Amr::restart()");
     BL_PROFILE("Amr::restart()");
 
@@ -1830,8 +1838,10 @@ Amr::checkPoint ()
     }
 
 #ifdef BL_HDF5
-    checkPointHDF5();
-    return;
+    if (check_file_type == "HDF5") {
+      checkPointHDF5();
+      return;
+    }
 #endif
 
     BL_PROFILE_REGION_START("Amr::checkPoint()");
@@ -2107,7 +2117,7 @@ Amr::restartHDF5 (const std::string& filename) {
 
   // spatial dimensions
   int spdim;
-  h5.readAttribute("SpaceDim", spdim, H5T_NATIVE_INT);
+  h5.readAttribute("SpaceDim", spdim);
 
   if (spdim != AMREX_SPACEDIM)
   {
@@ -2115,8 +2125,8 @@ Amr::restartHDF5 (const std::string& filename) {
       amrex::Abort();
   }
 
-  h5.readAttribute("SpaceDim", cumtime, H5T_NATIVE_DOUBLE);
-  h5.readAttribute("max_level", finest_level, H5T_NATIVE_DOUBLE);
+  h5.readAttribute("time", cumtime);
+  h5.readAttribute("max_level", finest_level);
 
   Vector<Box> inputs_domain(max_level+1);
   for (int lev = 0; lev <= max_level; ++lev) {
@@ -2130,37 +2140,34 @@ Amr::restartHDF5 (const std::string& filename) {
     H5 level_grp = h5.openGroup("level_"+num2str(i));
 
     // problem domain (logical)
-    hid_t box_id = makeH5Box();
     box_h5_t box;
-    level_grp.readAttribute("prob_domain", box, box_id);
+    level_grp.readAttribute("prob_domain", box);
     Box bx = readH5Box(box);
-    H5Tclose(box_id);
 
     // problem domain (real)
-    hid_t rbox_id = makeH5RealBox();
     rbox_h5_t rbox;
-    level_grp.readAttribute("real_domain", rbox, rbox_id);
+    level_grp.readAttribute("real_domain", rbox);
     RealBox rb = readH5RealBox(rbox);
-    H5Tclose(rbox_id);
 
     Geometry& gm = Geom(i);
     gm.define(bx, &rb);
 
     // refinement ratio
-    int rr [AMREX_SPACEDIM];
-    hid_t intvect_id = makeH5IntVec();
-    level_grp.readAttribute("vec_ref_ratio", rr, intvect_id);
-    ref_ratio[i] = IntVect(rr);
+    if (i < finest_level) {
+      int_h5_t rr;
+      level_grp.readAttribute("vec_ref_ratio", rr);
+      readH5IntVec(rr, ref_ratio[i].getVect());
+    }
 
     // dt
-    level_grp.readAttribute("dt", dt_level[i], H5T_NATIVE_DOUBLE);
+    level_grp.readAttribute("dt", dt_level[i]);
 
     // dt min
-    level_grp.readAttribute("min_dt", dt_min[i], H5T_NATIVE_DOUBLE);
+    level_grp.readAttribute("min_dt", dt_min[i]);
 
     // ncycle
     int n_cycle_in;
-    level_grp.readAttribute("n_cycle", n_cycle_in, H5T_NATIVE_DOUBLE);
+    level_grp.readAttribute("n_cycle", n_cycle_in);
 
     if (n_cycle[i] != n_cycle_in) {
         any_changed = true;
@@ -2178,10 +2185,10 @@ Amr::restartHDF5 (const std::string& filename) {
       }
 
     // steps
-    level_grp.readAttribute("level_steps", level_steps[i], H5T_NATIVE_DOUBLE);
+    level_grp.readAttribute("level_steps", level_steps[i]);
 
     // count
-    level_grp.readAttribute("level_count", level_count[i], H5T_NATIVE_DOUBLE);
+    level_grp.readAttribute("level_count", level_count[i]);
 
     level_grp.closeGroup();
 
@@ -2274,6 +2281,7 @@ Amr::restartHDF5 (const std::string& filename) {
   h5.closeFile();
 
   BL_PROFILE_REGION_STOP("Amr::restart()");
+
 }
 
 #endif
@@ -3823,6 +3831,9 @@ Amr::initPltAndChk ()
     pp.query("checkpoint_files_output", checkpoint_files_output);
     pp.query("plot_files_output", plot_files_output);
 
+
+    pp.query("plot_files_type", plot_files_output);
+
     pp.query("plot_nfiles", plot_nfiles);
     pp.query("checkpoint_nfiles", checkpoint_nfiles);
     //
@@ -3833,6 +3844,9 @@ Amr::initPltAndChk ()
     
     check_file_root = "chk";
     pp.query("check_file",check_file_root);
+
+    check_file_type = "";
+    pp.query("check_type",check_file_type);
 
     check_int = -1;
     pp.query("check_int",check_int);
@@ -3848,6 +3862,9 @@ Amr::initPltAndChk ()
 
     plot_file_root = "plt";
     pp.query("plot_file",plot_file_root);
+
+    plot_file_type = "";
+    pp.query("plot_type",plot_file_type);
 
     plot_int = -1;
     pp.query("plot_int",plot_int);

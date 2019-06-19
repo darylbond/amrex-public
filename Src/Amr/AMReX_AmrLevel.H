@@ -100,6 +100,8 @@ public:
 #ifdef BL_HDF5
   void writeLevelAttrHDF5(H5& h5);
   void writePlotHDF5(MultiFab& data_mf, const std::vector<std::string> data_names);
+  virtual void writePlotHDF5Pre ();
+  virtual void writePlotHDF5Post ();
 #endif
 
     //! Do pre-plotfile work to avoid synchronizations while writing the amr hierarchy
@@ -123,6 +125,8 @@ public:
                              bool               dump_old = true);
 #ifdef BL_HDF5
     void checkPointHDF5 (H5& h5);
+    virtual void checkPointHDF5Pre();
+    virtual void checkPointHDF5Post();
     virtual void restartHDF5 (Amr& papa, H5& h5);
 #endif
 

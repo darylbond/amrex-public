@@ -482,19 +482,14 @@ void BoxArray::readFromHDF5 (H5& h5, const std::string& name)
 {
 
   // read the boxes
-  hid_t box_id = makeH5Box();
   std::vector<box_h5_t> boxes;
-  h5.readType<box_h5_t>(name, boxes, box_id);
-  H5Tclose(box_id);
+  h5.readType<box_h5_t>(name, boxes);
 
   // read the index type
-  hid_t intvect_id = makeH5IntVec();
   int_h5_t type_int;
-
   H5 dset = h5.openDataset(name);
-  dset.readAttribute("cell_type",type_int, intvect_id);
+  dset.readAttribute("cell_type",type_int);
   dset.closeDataset();
-  H5Tclose(intvect_id);
   IntVect ixtype;
   readH5IntVec(type_int, ixtype.getVect());
 

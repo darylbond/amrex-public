@@ -1,8 +1,10 @@
 
 #include <AMReX_MultiFabUtil.H>
 #include <AMReX_MultiFabUtil_C.H>
+#include <AMReX_MultiFabUtil_F.H>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 
 namespace {
 
@@ -823,6 +825,10 @@ namespace amrex
       const BoxArray& grids = data_mf->boxArray();
       const DistributionMapping& dmap = data_mf->DistributionMap();
 
+      // make sure our multifab doesn't have any ghost cells
+      MultiFab tmp_fab(data_mf->boxArray(), data_mf->DistributionMap(), nComp, 0, MFInfo(), data_mf->Factory());
+      MultiFab::Copy(tmp_fab, *data_mf, 0, 0, nComp, 0);
+
       //-----------------------------------------------------------------------------------
       // multifabs data attributes
 
@@ -840,7 +846,7 @@ namespace amrex
       h5.writeAttribute(vMInt, vMReal, vMString);
 
       // the number of ghost cells saved and output
-      IntVect nGrow = data_mf->nGrowVect();
+      IntVect nGrow = tmp_fab.nGrowVect();
       hid_t intvect_id = makeH5IntVec();
       int_h5_t gint = writeH5IntVec(nGrow.getVect());
       h5.writeAttribute("ghost", gint, intvect_id);
@@ -848,21 +854,20 @@ namespace amrex
 
       // box layout etc
       SortedGrids sg(grids, dmap);
-      sg.update(data_mf);
+      sg.update(&tmp_fab);
       sg.sortedGrids.writeOnHDF5(h5, "boxes");
 
       // offsets
       h5.writeType("data:offsets=0", {(hsize_t)sg.offsets.size()}, sg.offsets,
                    H5T_NATIVE_LLONG);
 
-      // write data
       // first gather
       std::vector<Real> a_buffer(sg.procBufferSize[myProc], -1.0);
       long dataCount(0);
-      for (MFIter mfi(*data_mf); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(tmp_fab); mfi.isValid(); ++mfi) {
           const Box& vbox = mfi.validbox();
 
-          const Real* dataPtr = (*data_mf)[mfi].dataPtr();
+          const Real* dataPtr = (tmp_fab)[mfi].dataPtr();
           for (int i(0); i < vbox.numPts() * nComp; ++i) {
               a_buffer[dataCount++] = dataPtr[i];
             }
@@ -889,7 +894,7 @@ namespace amrex
 
       // get the data offsets
       Vector<unsigned long long> offsets;
-      h5.readType("data:offsets=0", offsets, H5T_NATIVE_LLONG);
+      h5.readType("data:offsets=0", offsets);
 
       int nComp = data_mf->nComp();
 
@@ -897,15 +902,18 @@ namespace amrex
       std::vector<hsize_t> local_dims(1);
       std::vector<hsize_t> offset(1);
 
+      // make a temporary multifab
+      MultiFab tmp_fab(data_mf->boxArray(), data_mf->DistributionMap(), nComp, 0, MFInfo(), data_mf->Factory());
+
       // retrieve data and load into multifab
-      for (MFIter mfi(*data_mf); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(tmp_fab); mfi.isValid(); ++mfi) {
           const Box& vbox = mfi.validbox();
 
           // get offset in the hdf5 file for the current box
           for (int i=0; i<boxes.size(); ++i) {
             if (boxes.get(i) == vbox) {
               offset[0] = offsets[i];
-              local_dims[0] = (offsets[i+1] - 1) - offsets[i];
+              local_dims[0] = offsets[i+1] - offsets[i];
               break;
             }
             if (i == boxes.size()-1) {
@@ -916,14 +924,39 @@ namespace amrex
           // get the data from the hdf5 file
           h5.readSlab("data:datatype=0", local_dims, offset, buffer);
 
-          // load the data into the multifab
-          Real* dataPtr = (*data_mf)[mfi].dataPtr();
+          // load the data into the temporary multifab
+          Real* dataPtr = tmp_fab[mfi].dataPtr();
           for (int i(0); i < vbox.numPts() * nComp; ++i) {
               dataPtr[i] = buffer[i];
             }
         }
+
+        // now copy to the real fab
+        MultiFab::Copy(*data_mf, tmp_fab, 0, 0, nComp, 0);
     }
 
 #endif
+
+  void writeMyFAB(amrex::MultiFab& save, const int comp, const std::string& name,
+                  const int counter) {
+    std::ofstream HeaderFile;
+    std::string HeaderFileName(name + "_c" + num2str(counter) + ".fab");
+    HeaderFile.open(HeaderFileName.c_str(),
+                    std::ios::out | std::ios::trunc | std::ios::binary);
+    std::cout << "writeMyFAB : " << HeaderFileName << std::endl;
+    int ncomp = save.nComp();
+    int nchar;
+    for (amrex::MFIter mfi(save); mfi.isValid(); ++mfi) {
+      std::string fname =
+          name + "_fab_" + num2str(mfi.index()) + "_c" + num2str(counter);
+      nchar = fname.size();
+
+      save_FAB(BL_TO_FORTRAN_ANYD(save[mfi]), &ncomp, &comp, fname.c_str(),
+               &nchar);
+      HeaderFile << fname << std::endl;
+    }
+    HeaderFile.close();
+    return;
+  }
 
 }

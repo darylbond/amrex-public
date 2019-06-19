@@ -143,7 +143,7 @@ class H5 {
   }
 
   template <class T>
-  herr_t readAttribute(const std::string& vName, T& vData, long H5Ttype) {
+  herr_t readAttribute(const std::string& vName, T& vData) {
     herr_t ret;
     // check if the attribute exists
     ret = H5Aexists(m_obj, vName.c_str());
@@ -158,7 +158,7 @@ class H5 {
     hid_t attr = H5Aopen(m_obj, vName.c_str(), H5P_DEFAULT);
 
     // read it
-    ret = H5Aread(attr, H5Ttype, &vData);
+    ret = H5Aread(attr, H5Aget_type(attr), &vData);
 
     // close it
     H5Aclose(attr);
@@ -167,7 +167,7 @@ class H5 {
   }
 
   template <class T>
-  herr_t readAttribute(const std::string& vName, std::vector<T>& vData, long H5Ttype) {
+  herr_t readAttribute(const std::string& vName, std::vector<T>& vData) {
     herr_t ret;
     // check if the attribute exists
     ret = H5Aexists(m_obj, vName.c_str());
@@ -184,13 +184,16 @@ class H5 {
     // get the size of the attribute
     hsize_t size =  H5Aget_storage_size(attr);
 
+    hid_t type = H5Aget_type(attr);
+
     // allocate space
-    vData.resize(size/sizeof(H5Ttype));
+    vData.resize(size/sizeof(type));
 
     // read it
-    ret = H5Aread(attr, H5Ttype, vData.data());
+    ret = H5Aread(attr, type, vData.data());
 
     // close it
+    H5Tclose(type);
     H5Aclose(attr);
 
     return ret;
@@ -198,7 +201,7 @@ class H5 {
 
 
   template <class T>
-  void readType(const std::string name, std::vector<T>& data, long H5Ttype) {
+  void readType(const std::string name, std::vector<T>& data) {
 
     hid_t dset, plist, space;
 
@@ -220,7 +223,7 @@ class H5 {
     data.resize(npoints);
 
     // read dataset
-    m_status = H5Dread(dset, H5Ttype, H5S_ALL, H5S_ALL, plist, data.data());
+    m_status = H5Dread(dset, H5Dget_type(dset), H5S_ALL, H5S_ALL, plist, data.data());
 
     H5Dclose(dset);
     H5Pclose(plist);

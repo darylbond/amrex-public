@@ -201,10 +201,6 @@ void AmrLevel::getPlotData(MultiFab& plot_data,
 
 void AmrLevel::writePlotFile(MultiFab& plot_data,
                              std::vector<std::string>& plot_names) {
-#ifdef BL_HDF5
-  writePlotHDF5(plot_data, plot_names);
-  return;
-#endif
 
   std::string& plot_dir = parent->getOutputName();
   std::ostream& plot_os = parent->getOutputStream();
@@ -441,6 +437,11 @@ void AmrLevel::writePlotHDF5(MultiFab& data_mf,
   writeMultiFab(level_grp, &data_mf, parent->cumTime());
   level_grp.closeGroup();
 }
+
+void AmrLevel::writePlotHDF5Pre() {}
+
+void AmrLevel::writePlotHDF5Post() {}
+
 #endif
 
 void AmrLevel::writePlotFilePre() {}
@@ -641,7 +642,7 @@ AmrLevel::checkPointHDF5 (H5& h5)
 
 
   // create a group for all of the levels data
-  H5 level_grp = h5.createGroup("/level_" + num2str(level));
+  H5 level_grp = h5.createGroup("level_" + num2str(level));
   writeLevelAttrHDF5(level_grp);
 
   int num_state = (int) desc_lst.size();
@@ -669,8 +670,22 @@ AmrLevel::checkPointHDF5 (H5& h5)
     state_grp.closeGroup();
   }
 
+  level_grp.closeGroup();
 
   return;
+}
+
+void
+AmrLevel::checkPointHDF5Pre ()
+{
+    BL_PROFILE("AmrLevel::checkPointHDF5Pre()");
+}
+
+
+void
+AmrLevel::checkPointHDF5Post ()
+{
+    BL_PROFILE("AmrLevel::checkPointHDF5Post()");
 }
 
 void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
@@ -678,7 +693,7 @@ void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
     BL_PROFILE("AmrLevel::restartHDF5()");
     parent = &papa;
 
-    h5.readAttribute("level", level, H5T_NATIVE_INT);
+    h5.readAttribute("level", level);
 
 
     // problem domain (logical)
@@ -703,7 +718,7 @@ void AmrLevel::restartHDF5 (Amr& papa, H5& h5)
     grids.readFromHDF5(h5, "boxes");
 
     int nstate;
-    h5.readAttribute("num_state", nstate, H5T_NATIVE_INT);
+    h5.readAttribute("num_state", nstate);
     int ndesc = desc_lst.size();
 
     Vector<int> state_in_checkpoint(ndesc, 1);
