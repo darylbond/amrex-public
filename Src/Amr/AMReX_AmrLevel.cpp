@@ -613,7 +613,7 @@ AmrLevel::checkPoint (const std::string& dir,
 
 #ifdef BL_HDF5
 void
-AmrLevel::checkPointHDF5 (H5& h5)
+AmrLevel::checkPointHDF5 (H5& h5, bool dump_old)
 {
   BL_PROFILE("AmrLevel::checkPointHDF5()");
 
@@ -653,7 +653,7 @@ AmrLevel::checkPointHDF5 (H5& h5)
   for (int typ = 0; typ < desc_lst.size(); ++typ) {
 
     H5 state_grp = level_grp.createGroup("state_" + num2str(typ));
-    state[typ].checkPointHDF5(state_grp);
+    state[typ].checkPointHDF5(state_grp, dump_old);
     int nComp = desc_lst[typ].nComp();
 
     vMInt.clear();

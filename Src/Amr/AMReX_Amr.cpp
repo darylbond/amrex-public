@@ -2019,7 +2019,7 @@ Amr::checkPoint ()
 #ifdef BL_HDF5
 
 void
-Amr::checkPointHDF5 ()
+Amr::checkPointHDF5 (bool dump_old)
 {
 
     BL_PROFILE_REGION_START("Amr::checkPointHDF5()");
@@ -2048,7 +2048,7 @@ Amr::checkPointHDF5 ()
   }
 
   for (int i = 0; i <= finest_level; ++i) {
-      amr_level[i]->checkPointHDF5(output_h5);
+      amr_level[i]->checkPointHDF5(output_h5, dump_old);
   }
 
   for (int i = 0; i <= finest_level; ++i) {

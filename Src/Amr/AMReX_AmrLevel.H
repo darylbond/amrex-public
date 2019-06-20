@@ -124,7 +124,7 @@ public:
                              VisMF::How         how = VisMF::NFiles,
                              bool               dump_old = true);
 #ifdef BL_HDF5
-    void checkPointHDF5 (H5& h5);
+    virtual void checkPointHDF5 (H5& h5, bool dump_old=true);
     virtual void checkPointHDF5Pre();
     virtual void checkPointHDF5Post();
     virtual void restartHDF5 (Amr& papa, H5& h5);

@@ -264,7 +264,7 @@ public:
     //! Write current state into a chk* file.
     virtual void checkPoint ();
 #ifdef BL_HDF5
-    virtual void checkPointHDF5 ();
+    virtual void checkPointHDF5 (bool dump_old=true);
 #endif
     int stepOfLastCheckPoint () const noexcept {return last_checkpoint;}
 
