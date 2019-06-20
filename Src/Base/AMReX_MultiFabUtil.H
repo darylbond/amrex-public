@@ -355,7 +355,6 @@ namespace amrex
     void readMultiFab(H5& obj, MultiFab* data_mf);
 #endif
 
-    void writeMyFAB(amrex::MultiFab& save, const int comp, const std::string& name, const int counter);
 }
 
 

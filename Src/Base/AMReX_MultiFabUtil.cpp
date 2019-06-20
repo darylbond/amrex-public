@@ -1,7 +1,6 @@
 
 #include <AMReX_MultiFabUtil.H>
 #include <AMReX_MultiFabUtil_C.H>
-#include <AMReX_MultiFabUtil_F.H>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -936,27 +935,5 @@ namespace amrex
     }
 
 #endif
-
-  void writeMyFAB(amrex::MultiFab& save, const int comp, const std::string& name,
-                  const int counter) {
-    std::ofstream HeaderFile;
-    std::string HeaderFileName(name + "_c" + num2str(counter) + ".fab");
-    HeaderFile.open(HeaderFileName.c_str(),
-                    std::ios::out | std::ios::trunc | std::ios::binary);
-    std::cout << "writeMyFAB : " << HeaderFileName << std::endl;
-    int ncomp = save.nComp();
-    int nchar;
-    for (amrex::MFIter mfi(save); mfi.isValid(); ++mfi) {
-      std::string fname =
-          name + "_fab_" + num2str(mfi.index()) + "_c" + num2str(counter);
-      nchar = fname.size();
-
-      save_FAB(BL_TO_FORTRAN_ANYD(save[mfi]), &ncomp, &comp, fname.c_str(),
-               &nchar);
-      HeaderFile << fname << std::endl;
-    }
-    HeaderFile.close();
-    return;
-  }
 
 }
