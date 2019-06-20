@@ -2044,7 +2044,7 @@ Amr::checkPointHDF5 (bool dump_old)
   output_h5.createFile(output_name, ParallelDescriptor::Communicator());
 
   for (int i = 0; i <= finest_level; ++i) {
-      amr_level[i]->checkPointPre();
+      amr_level[i]->checkPointHDF5Pre();
   }
 
   for (int i = 0; i <= finest_level; ++i) {
@@ -2052,7 +2052,7 @@ Amr::checkPointHDF5 (bool dump_old)
   }
 
   for (int i = 0; i <= finest_level; ++i) {
-      amr_level[i]->checkPointPost();
+      amr_level[i]->checkPointHDF5Post();
   }
 
   last_checkpoint = level_steps[0];
