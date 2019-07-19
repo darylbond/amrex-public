@@ -150,5 +150,6 @@ var searchData=
   ['numstates',['numStates',['../classamrex_1_1AmrLevel.html#aa9666a2babd9d59a595a2c3695f38f00',1,'amrex::AmrLevel']]],
   ['numtag',['numTag',['../classamrex_1_1Cluster.html#a8e93641412706943851b5f91efcebb91',1,'amrex::Cluster::numTag() const noexcept'],['../classamrex_1_1Cluster.html#ada50a90d38e4c407ecc6d1e0740cff3d',1,'amrex::Cluster::numTag(const Box &amp;b) const noexcept']]],
   ['numtags',['numTags',['../classamrex_1_1TagBox.html#aca71c208d9178bbe63ec06658c813616',1,'amrex::TagBox::numTags(const Box &amp;bx) const noexcept'],['../classamrex_1_1TagBox.html#a55e1676f90f87c700cdba6ea5490f988',1,'amrex::TagBox::numTags() const noexcept'],['../classamrex_1_1TagBoxArray.html#a9d3995c4c36f88292bdcfa45c2ec09e9',1,'amrex::TagBoxArray::numTags()']]],
+  ['numthreadsperblockparallelfor',['numThreadsPerBlockParallelFor',['../namespaceamrex_1_1Gpu.html#a9ac3f1c6e71f0842b8f152fce7e4a7fb',1,'amrex::Gpu']]],
   ['numtotalparticles',['numTotalParticles',['../classamrex_1_1ArrayOfStructs.html#affe81ab7ae3f756aadc5a8b7ae68039b',1,'amrex::ArrayOfStructs::numTotalParticles()'],['../structamrex_1_1ParticleTile.html#a4b41c54867f5d9ebac044ed58d21410f',1,'amrex::ParticleTile::numTotalParticles()'],['../structamrex_1_1StructOfArrays.html#a40f73f88c20b82b96dfba7fcce975759',1,'amrex::StructOfArrays::numTotalParticles()']]]
 ];

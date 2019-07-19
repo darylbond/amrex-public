@@ -9363,6 +9363,7 @@
     <member refid="classamrex_1_1RealBox_1a0ef0d1567b79fabf1c2ac051a78b3f95" kind="function"><name>ok</name></member>
     <member refid="classamrex_1_1RealBox_1a098e1f2357e21072c37d33fff98d9cb7" kind="function"><name>volume</name></member>
     <member refid="classamrex_1_1RealBox_1a6e117146678175a0d2be9d40e7873200" kind="function"><name>contains</name></member>
+    <member refid="classamrex_1_1RealBox_1a7c3358585c6f290b57884ea0297d373a" kind="function"><name>contains</name></member>
     <member refid="classamrex_1_1RealBox_1a3f794c66970518d1c8d164f4a7dae36a" kind="function"><name>contains</name></member>
     <member refid="classamrex_1_1RealBox_1aecb30e60d8a6a56c7c7233db3ae8d148" kind="function"><name>contains</name></member>
     <member refid="classamrex_1_1RealBox_1a8b71ab83b796a36109d487b53b7ec4c1" kind="function"><name>intersects</name></member>
@@ -10707,20 +10708,20 @@
     <member refid="namespaceamrex_1af41625305a9964fe293563e25874277e" kind="function"><name>call_device</name></member>
     <member refid="namespaceamrex_1a006c22eb1e141a0784faa415c00a49c4" kind="function"><name>launch_host</name></member>
     <member refid="namespaceamrex_1a3365c3faa5657c39e8d8aa3ac2b7592c" kind="function"><name>launch_host</name></member>
-    <member refid="namespaceamrex_1a78559bd0504c5d262c864b4a1508c515" kind="function"><name>launch</name></member>
-    <member refid="namespaceamrex_1affcf348713e6da3804d1865d13635294" kind="function"><name>For</name></member>
-    <member refid="namespaceamrex_1a6058fef7b9f2361b042c56dc6caae15d" kind="function"><name>ParallelFor</name></member>
-    <member refid="namespaceamrex_1a3e735aad9b8537c4cb3c1664b1049ac6" kind="function"><name>For</name></member>
-    <member refid="namespaceamrex_1aa0372f4e7091b65738a55ee4729cdb49" kind="function"><name>ParallelFor</name></member>
-    <member refid="namespaceamrex_1a812dc62544399a58a5e8c4e96ce59a39" kind="function"><name>For</name></member>
-    <member refid="namespaceamrex_1a486e0ef55520d238fe136663f9708514" kind="function"><name>ParallelFor</name></member>
-    <member refid="namespaceamrex_1a98af646dc5abe59173f946a27d75c48d" kind="function"><name>launch</name></member>
-    <member refid="namespaceamrex_1a7d8c7789a4ece16af1ebbbf9fffc34e6" kind="function"><name>For</name></member>
-    <member refid="namespaceamrex_1aa3bd6b0bc12954162421dc6c6ccffeb5" kind="function"><name>ParallelFor</name></member>
-    <member refid="namespaceamrex_1a42511239a23f32103cd22cc0376265dc" kind="function"><name>For</name></member>
-    <member refid="namespaceamrex_1a42c9ea11b9983315f202b71116aac348" kind="function"><name>ParallelFor</name></member>
-    <member refid="namespaceamrex_1ad271b5caef003ea280e31b14f6b189af" kind="function"><name>For</name></member>
-    <member refid="namespaceamrex_1a952cbb10c3f23ba4f3acf9d09ca8d4b2" kind="function"><name>ParallelFor</name></member>
+    <member refid="namespaceamrex_1af4d151c2468315a6ee2178ae06b7672b" kind="function"><name>launch</name></member>
+    <member refid="namespaceamrex_1a7760b79f39172335609a30e65b42a43d" kind="function"><name>For</name></member>
+    <member refid="namespaceamrex_1aa09dca9c7b84740a730797ba8447910f" kind="function"><name>ParallelFor</name></member>
+    <member refid="namespaceamrex_1ae37d7efa039bbf2d025ce182a601c921" kind="function"><name>For</name></member>
+    <member refid="namespaceamrex_1a6c3c5c0822e0f3b485347a31007f0b04" kind="function"><name>ParallelFor</name></member>
+    <member refid="namespaceamrex_1a1cb0a3f5789088748320d96d5bb17a07" kind="function"><name>For</name></member>
+    <member refid="namespaceamrex_1a6fd9275ec6ad522337450c98912f4bc8" kind="function"><name>ParallelFor</name></member>
+    <member refid="namespaceamrex_1a22492db7405d8da75faff5c7f4993935" kind="function"><name>launch</name></member>
+    <member refid="namespaceamrex_1aa799e053a266e0567897abdcaea02b25" kind="function"><name>For</name></member>
+    <member refid="namespaceamrex_1aa558661b8633692b57d5368599925fb8" kind="function"><name>ParallelFor</name></member>
+    <member refid="namespaceamrex_1a7e638a276d9be72e5a22f9694c0d8137" kind="function"><name>For</name></member>
+    <member refid="namespaceamrex_1a33e0ede86fe8f61f17c47b859af7ed4e" kind="function"><name>ParallelFor</name></member>
+    <member refid="namespaceamrex_1a9e96d5f9ed1561672085dcdab7996d42" kind="function"><name>For</name></member>
+    <member refid="namespaceamrex_1a3e71c19a2dca328862a0b78363820fe6" kind="function"><name>ParallelFor</name></member>
     <member refid="namespaceamrex_1a7999d4ed2bf68aba97d9772d888667d9" kind="function"><name>OwnerMask</name></member>
     <member refid="namespaceamrex_1a73fb53c873d555a7a3cc7b33e88a5f33" kind="function"><name>operator&lt;&lt;</name></member>
     <member refid="namespaceamrex_1ab982b91919e6fa7eed439d20fc794c41" kind="function"><name>operator&gt;&gt;</name></member>
@@ -11400,6 +11401,7 @@
     <member refid="namespaceamrex_1_1Gpu_1aa443a27f05e81db793b131d3fc0b101c" kind="function"><name>dtoh_memcpy</name></member>
     <member refid="namespaceamrex_1_1Gpu_1aacefe17a39734cb2475a36199ab1370b" kind="function"><name>htod_memcpy_async</name></member>
     <member refid="namespaceamrex_1_1Gpu_1a6cb0d90b937d4749b2219ad0e9fa8277" kind="function"><name>dtoh_memcpy_async</name></member>
+    <member refid="namespaceamrex_1_1Gpu_1a9ac3f1c6e71f0842b8f152fce7e4a7fb" kind="function"><name>numThreadsPerBlockParallelFor</name></member>
     <member refid="namespaceamrex_1_1Gpu_1a8116e775f35d977f35ff6a522db709d9" kind="function"><name>getGridSize</name></member>
     <member refid="namespaceamrex_1_1Gpu_1a487b4842b7ddc2b14afd7eb184f89818" kind="function"><name>getThreadBox</name></member>
     <member refid="namespaceamrex_1_1Gpu_1a5a7e65f26ef2a8d356ebef518f007aaf" kind="function"><name>Range</name></member>

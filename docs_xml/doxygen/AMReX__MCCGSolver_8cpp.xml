@@ -670,6 +670,8 @@
         </childnode>
         <childnode refid="52847" relation="include">
         </childnode>
+        <childnode refid="52806" relation="include">
+        </childnode>
         <childnode refid="52886" relation="include">
         </childnode>
         <childnode refid="52887" relation="include">
