@@ -343,6 +343,8 @@
     <member refid="classamrex_1_1AmrCore_1a30f4c446e360d02875146f91f942012c" kind="function"><name>AmrCore</name></member>
     <member refid="classamrex_1_1AmrCore_1ac9680d7596a200d0a7403732101565e2" kind="function"><name>AmrCore</name></member>
     <member refid="classamrex_1_1AmrCore_1afb69ffb7fcb6a73fd03d61b5752424b4" kind="function"><name>AmrCore</name></member>
+    <member refid="classamrex_1_1AmrCore_1a691bdc73902c0c5695d186ac680deb9f" kind="function"><name>AmrCore</name></member>
+    <member refid="classamrex_1_1AmrCore_1ae524f7c2cee3133106953319696bd7c5" kind="function"><name>operator=</name></member>
     <member refid="classamrex_1_1AmrCore_1ac0a84aa89a7db1e9543096d9c9f50a65" kind="function"><name>AmrCore</name></member>
     <member refid="classamrex_1_1AmrCore_1acf424d1fa598d256d7285e7fc6f20a73" kind="function"><name>operator=</name></member>
     <member refid="classamrex_1_1AmrCore_1aa826ec39007a18c0002a14d9a53863af" kind="function"><name>~AmrCore</name></member>
@@ -839,6 +841,8 @@
     <member refid="classamrex_1_1AmrMesh_1ab883ddbcab8b89f8eee7e9df1ae2b41b" kind="function"><name>AmrMesh</name></member>
     <member refid="classamrex_1_1AmrMesh_1aa3d1b57d3957feca7d0f897ec2e62824" kind="function"><name>AmrMesh</name></member>
     <member refid="classamrex_1_1AmrMesh_1a51e0432968299f0c83f90d9b79376a6c" kind="function"><name>operator=</name></member>
+    <member refid="classamrex_1_1AmrMesh_1a43f67413ffdd911f5a91e9041bb20d0e" kind="function"><name>AmrMesh</name></member>
+    <member refid="classamrex_1_1AmrMesh_1af2d4364b9fd33cf012edbb2170105845" kind="function"><name>operator=</name></member>
     <member refid="classamrex_1_1AmrMesh_1a10865e07f3aae297cdea041881e7b9ab" kind="function"><name>~AmrMesh</name></member>
     <member refid="classamrex_1_1AmrMesh_1a9b78b807755b822ba0c46ec0e3150089" kind="function"><name>Verbose</name></member>
     <member refid="classamrex_1_1AmrMesh_1a2b5ebb9f738e77dcc2f99dfe4e4e91d6" kind="function"><name>maxLevel</name></member>

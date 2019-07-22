@@ -18,7 +18,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="85" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" bodystart="85" bodyend="-1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="88" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" bodystart="88" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-func">
@@ -112,6 +112,40 @@
         </inbodydescription>
         <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="35" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="52" bodyend="60"/>
       </memberdef>
+      <memberdef kind="function" id="classamrex_1_1AmrCore_1a691bdc73902c0c5695d186ac680deb9f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>amrex::AmrCore::AmrCore</definition>
+        <argsstring>(AmrCore &amp;&amp;rhs)=default</argsstring>
+        <name>AmrCore</name>
+        <param>
+          <type><ref refid="classamrex_1_1AmrCore" kindref="compound">AmrCore</ref> &amp;&amp;</type>
+          <declname>rhs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="40" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classamrex_1_1AmrCore_1ae524f7c2cee3133106953319696bd7c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classamrex_1_1AmrCore" kindref="compound">AmrCore</ref> &amp;</type>
+        <definition>AmrCore&amp; amrex::AmrCore::operator=</definition>
+        <argsstring>(AmrCore &amp;&amp;rhs)=default</argsstring>
+        <name>operator=</name>
+        <param>
+          <type><ref refid="classamrex_1_1AmrCore" kindref="compound">AmrCore</ref> &amp;&amp;</type>
+          <declname>rhs</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="41" column="1"/>
+      </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1ac0a84aa89a7db1e9543096d9c9f50a65" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
         <definition>amrex::AmrCore::AmrCore</definition>
@@ -127,7 +161,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="40" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="43" column="1"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1acf424d1fa598d256d7285e7fc6f20a73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="classamrex_1_1AmrCore" kindref="compound">AmrCore</ref> &amp;</type>
@@ -144,7 +178,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="41" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="44" column="1"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1aa826ec39007a18c0002a14d9a53863af" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
         <type></type>
@@ -157,7 +191,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="43" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="62" bodyend="65"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="46" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="62" bodyend="65"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1a309a4bad63faba98cfc57641e274413d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -174,7 +208,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="55" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="80" bodyend="83"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="58" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="80" bodyend="83"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1ae80fa713b669de0f235d3ef0792e7200" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
         <type>void</type>
@@ -201,7 +235,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="58" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="86" bodyend="122"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="61" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="86" bodyend="122"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1a4f3c144db8f986764324e9ba788666b3" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -226,7 +260,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="63" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="126" bodyend="215"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="66" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="126" bodyend="215"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1a927ec455a69cf736bb8e9ff03e5dae5e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
         <type>int</type>
@@ -239,7 +273,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="65" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" bodystart="65" bodyend="65"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="68" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" bodystart="68" bodyend="68"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="public-static-func">
@@ -254,7 +288,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="60" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="24" bodyend="28"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="63" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="24" bodyend="28"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1af63658d7f3eaf4c233404dc6b10fae13" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -267,7 +301,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="61" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="31" bodyend="34"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="64" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="31" bodyend="34"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="protected-func">
@@ -301,7 +335,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="70" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="73" column="1"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1af037642d569d83cfe2ca14de640a4d28" prot="protected" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
         <type>void</type>
@@ -334,7 +368,7 @@
 <para>Make a new level from scratch using provided <ref refid="classamrex_1_1BoxArray" kindref="compound">BoxArray</ref> and <ref refid="classamrex_1_1DistributionMapping" kindref="compound">DistributionMapping</ref>. Only used during initialization. </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="74" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="77" column="1"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1af472acf05bea1145b67f7022de16a664" prot="protected" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
         <type>void</type>
@@ -365,7 +399,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="77" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="80" column="1"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1a89b690a6f834d76bf96f8f1facc356c4" prot="protected" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
         <type>void</type>
@@ -396,7 +430,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="80" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="83" column="1"/>
       </memberdef>
       <memberdef kind="function" id="classamrex_1_1AmrCore_1a26c39ed62cd9f3383f3936f1fcdb65b3" prot="protected" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
         <type>void</type>
@@ -416,7 +450,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="83" column="1"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="86" column="1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="private-func">
@@ -431,7 +465,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="92" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="68" bodyend="77"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="95" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.cpp" bodystart="68" bodyend="77"/>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -537,16 +571,18 @@
         </childnode>
       </node>
     </collaborationgraph>
-    <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="25" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" bodystart="23" bodyend="93"/>
+    <location file="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" line="25" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/AmrCore/AMReX_AmrCore.H" bodystart="23" bodyend="96"/>
     <listofallmembers>
       <member refid="classamrex_1_1AmrCore_1a30f4c446e360d02875146f91f942012c" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrCore</name></member>
       <member refid="classamrex_1_1AmrCore_1ac9680d7596a200d0a7403732101565e2" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrCore</name></member>
       <member refid="classamrex_1_1AmrCore_1afb69ffb7fcb6a73fd03d61b5752424b4" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrCore</name></member>
+      <member refid="classamrex_1_1AmrCore_1a691bdc73902c0c5695d186ac680deb9f" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrCore</name></member>
       <member refid="classamrex_1_1AmrCore_1ac0a84aa89a7db1e9543096d9c9f50a65" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrCore</name></member>
       <member refid="classamrex_1_1AmrMesh_1a163e8a28e1f841b2c174d6d34664e2d3" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrMesh</name></member>
       <member refid="classamrex_1_1AmrMesh_1a58e7077dec217e4bdad1f5221e6229cc" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrMesh</name></member>
       <member refid="classamrex_1_1AmrMesh_1ab883ddbcab8b89f8eee7e9df1ae2b41b" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrMesh</name></member>
       <member refid="classamrex_1_1AmrMesh_1aa3d1b57d3957feca7d0f897ec2e62824" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrMesh</name></member>
+      <member refid="classamrex_1_1AmrMesh_1a43f67413ffdd911f5a91e9041bb20d0e" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>AmrMesh</name></member>
       <member refid="classamrex_1_1AmrMesh_1acdbddd33ae38b3d038fcaa14ce05e039" prot="protected" virt="non-virtual"><scope>amrex::AmrCore</scope><name>blocking_factor</name></member>
       <member refid="classamrex_1_1AmrMesh_1af4a41ee86449b2afa949b6d68f6faf6f" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>blockingFactor</name></member>
       <member refid="classamrex_1_1AmrMesh_1a331d8f1ba022fc6d08c1e2be97dd2eb6" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>boxArray</name></member>
@@ -595,8 +631,10 @@
       <member refid="classamrex_1_1AmrMesh_1ad5199bceb8775542859c6b51d0a2100c" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>nErrorBuf</name></member>
       <member refid="classamrex_1_1AmrMesh_1a071011d3702ecfc14ebc0f61a30a50ed" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>nErrorBufVect</name></member>
       <member refid="classamrex_1_1AmrMesh_1aa1e59b567c58d9ba22c9e56f8138a22a" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>nProper</name></member>
+      <member refid="classamrex_1_1AmrCore_1ae524f7c2cee3133106953319696bd7c5" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>operator=</name></member>
       <member refid="classamrex_1_1AmrCore_1acf424d1fa598d256d7285e7fc6f20a73" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>operator=</name></member>
       <member refid="classamrex_1_1AmrMesh_1a51e0432968299f0c83f90d9b79376a6c" prot="public" virt="non-virtual" ambiguityscope="amrex::AmrMesh::"><scope>amrex::AmrCore</scope><name>operator=</name></member>
+      <member refid="classamrex_1_1AmrMesh_1af2d4364b9fd33cf012edbb2170105845" prot="public" virt="non-virtual" ambiguityscope="amrex::AmrMesh::"><scope>amrex::AmrCore</scope><name>operator=</name></member>
       <member refid="classamrex_1_1AmrCore_1a4f3c144db8f986764324e9ba788666b3" prot="public" virt="non-virtual"><scope>amrex::AmrCore</scope><name>printGridSummary</name></member>
       <member refid="classamrex_1_1AmrMesh_1a7e3c7fc2f5598fdd4132536724933f2a" prot="protected" virt="non-virtual"><scope>amrex::AmrCore</scope><name>ref_ratio</name></member>
       <member refid="classamrex_1_1AmrMesh_1a95059679c4b3343198edadf7d9d860e5" prot="protected" virt="non-virtual"><scope>amrex::AmrCore</scope><name>refine_grid_layout</name></member>
