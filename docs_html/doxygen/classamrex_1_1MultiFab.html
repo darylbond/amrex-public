@@ -596,6 +596,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a891a75562cd2f21525d54eb493ae0e2c"><td class="memItemLeft" align="right" valign="top">static Real&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1MultiFab.html#a891a75562cd2f21525d54eb493ae0e2c">Dot</a> (const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;x, int xcomp, const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;y, int ycomp, int num_comp, int nghost, bool local=false)</td></tr>
 <tr class="memdesc:a891a75562cd2f21525d54eb493ae0e2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the dot product of two MultiFabs.  <a href="#a891a75562cd2f21525d54eb493ae0e2c">More...</a><br /></td></tr>
 <tr class="separator:a891a75562cd2f21525d54eb493ae0e2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae12d3c689432b9485ffba3b6ce5c7dc7"><td class="memItemLeft" align="right" valign="top">static Real&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1MultiFab.html#ae12d3c689432b9485ffba3b6ce5c7dc7">Dot</a> (const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;x, int xcomp, int num_comp, int nghost, bool local=false)</td></tr>
+<tr class="memdesc:ae12d3c689432b9485ffba3b6ce5c7dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the dot product of a <a class="el" href="classamrex_1_1MultiFab.html" title="A collection (stored as an array) of FArrayBox objects. This class is useful for storing floating poi...">MultiFab</a> with itself.  <a href="#ae12d3c689432b9485ffba3b6ce5c7dc7">More...</a><br /></td></tr>
+<tr class="separator:ae12d3c689432b9485ffba3b6ce5c7dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4530e478f0e9c128719e7649e26af997"><td class="memItemLeft" align="right" valign="top">static Real&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1MultiFab.html#a4530e478f0e9c128719e7649e26af997">Dot</a> (const <a class="el" href="classamrex_1_1iMultiFab.html">iMultiFab</a> &amp;mask, const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;x, int xcomp, const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;y, int ycomp, int num_comp, int nghost, bool local=false)</td></tr>
 <tr class="separator:a4530e478f0e9c128719e7649e26af997"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a819ab01c7558b8982acb35eaf0f861"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1MultiFab.html#a4a819ab01c7558b8982acb35eaf0f861">Add</a> (<a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;dst, const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;src, int srccomp, int dstcomp, int numcomp, int nghost)</td></tr>
@@ -2018,6 +2021,60 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns the dot product of two MultiFabs. </p>
+
+</div>
+</div>
+<a class="anchor" id="ae12d3c689432b9485ffba3b6ce5c7dc7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Real amrex::MultiFab::Dot </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classamrex_1_1MultiFab.html">MultiFab</a> &amp;&#160;</td>
+          <td class="paramname"><em>x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>xcomp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>num_comp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nghost</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>local</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the dot product of a <a class="el" href="classamrex_1_1MultiFab.html" title="A collection (stored as an array) of FArrayBox objects. This class is useful for storing floating poi...">MultiFab</a> with itself. </p>
 
 </div>
 </div>

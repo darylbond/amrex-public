@@ -1283,6 +1283,8 @@
     <member refid="classamrex_1_1BaseFab_1a340980ddd90afa284ccd3514098a2b44" kind="function"><name>invert</name></member>
     <member refid="classamrex_1_1BaseFab_1ac5203569fe07a6ea8da8ece607fec738" kind="function"><name>sum</name></member>
     <member refid="classamrex_1_1BaseFab_1a809f337b1ac6e5da6557f630149a3eca" kind="function"><name>dot</name></member>
+    <member refid="classamrex_1_1BaseFab_1a321130e1af874c362b23bcd4ba7e3f2e" kind="function"><name>dot</name></member>
+    <member refid="classamrex_1_1BaseFab_1a0db120f3f074edbdde7a22efc8de37fc" kind="function"><name>dot</name></member>
     <member refid="classamrex_1_1BaseFab_1adb777343cc7e97c16caff0ff8d83b5c9" kind="function"><name>dotmask</name></member>
     <member refid="classamrex_1_1BaseFab_1a1d6dfeb0de1a785895b2a26e05c8ce4a" kind="function"><name>Initialize</name></member>
     <member refid="classamrex_1_1BaseFab_1a4b42e2b61ac6d8050def0a5e9bde849f" kind="function"><name>Finalize</name></member>
@@ -7996,6 +7998,7 @@
     <member refid="classamrex_1_1MultiFab_1aec134620b7dfd17d0b8a540e9a96f41c" kind="function"><name>OverrideSync</name></member>
     <member refid="classamrex_1_1MultiFab_1afc2840698e1cec5a44ebeb9d34783327" kind="function"><name>OverrideSync</name></member>
     <member refid="classamrex_1_1MultiFab_1a891a75562cd2f21525d54eb493ae0e2c" kind="function"><name>Dot</name></member>
+    <member refid="classamrex_1_1MultiFab_1ae12d3c689432b9485ffba3b6ce5c7dc7" kind="function"><name>Dot</name></member>
     <member refid="classamrex_1_1MultiFab_1a4530e478f0e9c128719e7649e26af997" kind="function"><name>Dot</name></member>
     <member refid="classamrex_1_1MultiFab_1a4a819ab01c7558b8982acb35eaf0f861" kind="function"><name>Add</name></member>
     <member refid="classamrex_1_1MultiFab_1adda7ad2b1b845b959488fd19acdd335b" kind="function"><name>Add</name></member>

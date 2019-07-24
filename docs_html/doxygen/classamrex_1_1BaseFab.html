@@ -634,6 +634,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a809f337b1ac6e5da6557f630149a3eca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="AMReX__GpuQualifiers_8H.html#aac52ee54727d35b2d0033b119a991618">AMREX_GPU_HOST_DEVICE</a> T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1BaseFab.html#a809f337b1ac6e5da6557f630149a3eca">dot</a> (const <a class="el" href="classamrex_1_1BaseFab.html">BaseFab</a>&lt; T &gt; &amp;src, const <a class="el" href="classamrex_1_1Box.html">Box</a> &amp;bx, <a class="el" href="structamrex_1_1SrcComp.html">SrcComp</a> scomp, <a class="el" href="structamrex_1_1DestComp.html">DestComp</a> dcomp, <a class="el" href="structamrex_1_1NumComps.html">NumComps</a> ncomp) const noexcept</td></tr>
 <tr class="memdesc:a809f337b1ac6e5da6557f630149a3eca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dot product of two Fabs.  <a href="#a809f337b1ac6e5da6557f630149a3eca">More...</a><br /></td></tr>
 <tr class="separator:a809f337b1ac6e5da6557f630149a3eca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a321130e1af874c362b23bcd4ba7e3f2e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="AMReX__GpuQualifiers_8H.html#aac52ee54727d35b2d0033b119a991618">AMREX_GPU_HOST_DEVICE</a> T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1BaseFab.html#a321130e1af874c362b23bcd4ba7e3f2e">dot</a> (const <a class="el" href="classamrex_1_1Box.html">Box</a> &amp;bx, int destcomp, int numcomp) const noexcept</td></tr>
+<tr class="memdesc:a321130e1af874c362b23bcd4ba7e3f2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Int wrapper for dot.  <a href="#a321130e1af874c362b23bcd4ba7e3f2e">More...</a><br /></td></tr>
+<tr class="separator:a321130e1af874c362b23bcd4ba7e3f2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0db120f3f074edbdde7a22efc8de37fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="AMReX__GpuQualifiers_8H.html#aac52ee54727d35b2d0033b119a991618">AMREX_GPU_HOST_DEVICE</a> T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1BaseFab.html#a0db120f3f074edbdde7a22efc8de37fc">dot</a> (const <a class="el" href="classamrex_1_1Box.html">Box</a> &amp;bx, <a class="el" href="structamrex_1_1DestComp.html">DestComp</a> dcomp, <a class="el" href="structamrex_1_1NumComps.html">NumComps</a> ncomp) const noexcept</td></tr>
+<tr class="memdesc:a0db120f3f074edbdde7a22efc8de37fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dot product.  <a href="#a0db120f3f074edbdde7a22efc8de37fc">More...</a><br /></td></tr>
+<tr class="separator:a0db120f3f074edbdde7a22efc8de37fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb777343cc7e97c16caff0ff8d83b5c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="AMReX__GpuQualifiers_8H.html#aac52ee54727d35b2d0033b119a991618">AMREX_GPU_HOST_DEVICE</a> T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classamrex_1_1BaseFab.html#adb777343cc7e97c16caff0ff8d83b5c9">dotmask</a> (const <a class="el" href="classamrex_1_1BaseFab.html">BaseFab</a>&lt; T &gt; &amp;src, const <a class="el" href="classamrex_1_1Box.html">Box</a> &amp;bx, const <a class="el" href="classamrex_1_1BaseFab.html">BaseFab</a>&lt; int &gt; &amp;mask, <a class="el" href="structamrex_1_1SrcComp.html">SrcComp</a> scomp, <a class="el" href="structamrex_1_1DestComp.html">DestComp</a> dcomp, <a class="el" href="structamrex_1_1NumComps.html">NumComps</a> ncomp) const noexcept</td></tr>
 <tr class="memdesc:adb777343cc7e97c16caff0ff8d83b5c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dot product of two Fabs with mask.  <a href="#adb777343cc7e97c16caff0ff8d83b5c9">More...</a><br /></td></tr>
 <tr class="separator:adb777343cc7e97c16caff0ff8d83b5c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2857,6 +2863,94 @@ template&lt;class T&gt; </div>
 </div><div class="memdoc">
 
 <p>Dot product of two Fabs. </p>
+
+</div>
+</div>
+<a class="anchor" id="a321130e1af874c362b23bcd4ba7e3f2e"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">T <a class="el" href="classamrex_1_1BaseFab.html">amrex::BaseFab</a>&lt; T &gt;::dot </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classamrex_1_1Box.html">Box</a> &amp;&#160;</td>
+          <td class="paramname"><em>bx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>destcomp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>numcomp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Int wrapper for dot. </p>
+
+</div>
+</div>
+<a class="anchor" id="a0db120f3f074edbdde7a22efc8de37fc"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">T <a class="el" href="classamrex_1_1BaseFab.html">amrex::BaseFab</a>&lt; T &gt;::dot </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classamrex_1_1Box.html">Box</a> &amp;&#160;</td>
+          <td class="paramname"><em>bx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structamrex_1_1DestComp.html">DestComp</a>&#160;</td>
+          <td class="paramname"><em>dcomp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structamrex_1_1NumComps.html">NumComps</a>&#160;</td>
+          <td class="paramname"><em>ncomp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Dot product. </p>
 
 </div>
 </div>

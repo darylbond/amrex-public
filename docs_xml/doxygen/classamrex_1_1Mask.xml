@@ -1024,6 +1024,8 @@
       <member refid="classamrex_1_1BaseFab_1a8e95d8cfaadfe53080ae0092b53202fb" prot="protected" virt="non-virtual"><scope>amrex::Mask</scope><name>domain</name></member>
       <member refid="classamrex_1_1BaseFab_1adb03ed2032296735e2b188be56558fbf" prot="public" virt="non-virtual"><scope>amrex::Mask</scope><name>dot</name></member>
       <member refid="classamrex_1_1BaseFab_1a809f337b1ac6e5da6557f630149a3eca" prot="public" virt="non-virtual"><scope>amrex::Mask</scope><name>dot</name></member>
+      <member refid="classamrex_1_1BaseFab_1a321130e1af874c362b23bcd4ba7e3f2e" prot="public" virt="non-virtual"><scope>amrex::Mask</scope><name>dot</name></member>
+      <member refid="classamrex_1_1BaseFab_1a0db120f3f074edbdde7a22efc8de37fc" prot="public" virt="non-virtual"><scope>amrex::Mask</scope><name>dot</name></member>
       <member refid="classamrex_1_1BaseFab_1a6b8d97aba07d9806cf1e711ca44f283a" prot="public" virt="non-virtual"><scope>amrex::Mask</scope><name>dotmask</name></member>
       <member refid="classamrex_1_1BaseFab_1adb777343cc7e97c16caff0ff8d83b5c9" prot="public" virt="non-virtual"><scope>amrex::Mask</scope><name>dotmask</name></member>
       <member refid="classamrex_1_1BaseFab_1a9236f2f88feff79c1d50b9b830750f91" prot="protected" virt="non-virtual"><scope>amrex::Mask</scope><name>dptr</name></member>
