@@ -147,7 +147,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" line="307" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" bodystart="307" bodyend="314"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" line="307" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" bodystart="307" bodyend="315"/>
       </memberdef>
       <memberdef kind="function" id="namespaceamrex_1_1Cuda_1ad6e1b17bd58f41513b45874c3e016e41" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <templateparamlist>
@@ -180,7 +180,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" line="317" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" bodystart="317" bodyend="333"/>
+        <location file="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" line="318" column="1" bodyfile="/home/travis/build/AMReX-Codes/amrex/Src/Base/AMReX_CudaContainers.H" bodystart="318" bodyend="335"/>
       </memberdef>
       </sectiondef>
     <briefdescription>

@@ -241,38 +241,38 @@
     <detaileddescription>
     </detaileddescription>
     <inheritancegraph>
-      <node id="5793">
+      <node id="5796">
         <label>amrex::PrintToFile</label>
         <link refid="classamrex_1_1PrintToFile"/>
       </node>
-      <node id="5794">
+      <node id="5797">
         <label>amrex::AllPrintToFile</label>
         <link refid="classamrex_1_1AllPrintToFile"/>
-        <childnode refid="5793" relation="public-inheritance">
+        <childnode refid="5796" relation="public-inheritance">
         </childnode>
       </node>
     </inheritancegraph>
     <collaborationgraph>
-      <node id="5795">
+      <node id="5798">
         <label>amrex::PrintToFile</label>
         <link refid="classamrex_1_1PrintToFile"/>
-        <childnode refid="5796" relation="usage">
+        <childnode refid="5799" relation="usage">
           <edgelabel>file_name</edgelabel>
         </childnode>
-        <childnode refid="5797" relation="usage">
+        <childnode refid="5800" relation="usage">
           <edgelabel>ss</edgelabel>
         </childnode>
-        <childnode refid="5798" relation="usage">
+        <childnode refid="5801" relation="usage">
           <edgelabel>ofs</edgelabel>
         </childnode>
       </node>
-      <node id="5796">
+      <node id="5799">
         <label>string</label>
       </node>
-      <node id="5797">
+      <node id="5800">
         <label>ostringstream</label>
       </node>
-      <node id="5798">
+      <node id="5801">
         <label>ofstream</label>
       </node>
     </collaborationgraph>

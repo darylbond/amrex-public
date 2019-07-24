@@ -36,24 +36,24 @@
     <detaileddescription>
     </detaileddescription>
     <collaborationgraph>
-      <node id="5784">
+      <node id="5787">
         <label>amrex::IntVect</label>
         <link refid="classamrex_1_1IntVect"/>
-        <childnode refid="5784" relation="usage">
+        <childnode refid="5787" relation="usage">
           <edgelabel>Unit</edgelabel>
           <edgelabel>Zero</edgelabel>
         </childnode>
       </node>
-      <node id="5785">
+      <node id="5788">
         <label>Real</label>
       </node>
-      <node id="5783">
+      <node id="5786">
         <label>amrex::EB2::PolyTerm</label>
         <link refid="classamrex_1_1EB2_1_1PolyTerm"/>
-        <childnode refid="5784" relation="usage">
+        <childnode refid="5787" relation="usage">
           <edgelabel>powers</edgelabel>
         </childnode>
-        <childnode refid="5785" relation="usage">
+        <childnode refid="5788" relation="usage">
           <edgelabel>coef</edgelabel>
         </childnode>
       </node>

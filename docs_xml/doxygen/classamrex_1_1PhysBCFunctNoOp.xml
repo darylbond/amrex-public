@@ -58,26 +58,26 @@
     <detaileddescription>
     </detaileddescription>
     <inheritancegraph>
-      <node id="5742">
+      <node id="5745">
         <label>amrex::PhysBCFunctBase</label>
         <link refid="classamrex_1_1PhysBCFunctBase"/>
       </node>
-      <node id="5741">
+      <node id="5744">
         <label>amrex::PhysBCFunctNoOp</label>
         <link refid="classamrex_1_1PhysBCFunctNoOp"/>
-        <childnode refid="5742" relation="public-inheritance">
+        <childnode refid="5745" relation="public-inheritance">
         </childnode>
       </node>
     </inheritancegraph>
     <collaborationgraph>
-      <node id="5744">
+      <node id="5747">
         <label>amrex::PhysBCFunctBase</label>
         <link refid="classamrex_1_1PhysBCFunctBase"/>
       </node>
-      <node id="5743">
+      <node id="5746">
         <label>amrex::PhysBCFunctNoOp</label>
         <link refid="classamrex_1_1PhysBCFunctNoOp"/>
-        <childnode refid="5744" relation="public-inheritance">
+        <childnode refid="5747" relation="public-inheritance">
         </childnode>
       </node>
     </collaborationgraph>

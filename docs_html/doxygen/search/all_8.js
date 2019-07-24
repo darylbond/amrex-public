@@ -17,6 +17,7 @@ var searchData=
   ['hash_5fvector',['hash_vector',['../namespaceamrex.html#a72ebcf044c2dabd659e4ed5831cadc5e',1,'amrex']]],
   ['hasher',['hasher',['../classamrex_1_1IntVect.html#a0da0ad772b267330594cbcc72bb48c5c',1,'amrex::IntVect']]],
   ['hashlong',['HashLong',['../structCommProfStats_1_1SendRecvPair.html#ac8ff55bff560fd1eb7b0d8e5348e0897',1,'CommProfStats::SendRecvPair::HashLong()'],['../structCommProfStats_1_1SendRecvPair.html#affc4ad3093d7797f15aa225d86d213c8',1,'CommProfStats::SendRecvPair::HashLong(int fp, int tp, int t)'],['../structCommProfStats_1_1SendRecvPair.html#ade72cd2668dc4687f419b95862d7f459',1,'CommProfStats::SendRecvPair::HashLong(int fp, int tp, int ds, int t)']]],
+  ['hasneighbors',['hasNeighbors',['../classamrex_1_1NeighborParticleContainer.html#ae1b82ffadf5cb1ad88f73ea30f998a00',1,'amrex::NeighborParticleContainer']]],
   ['hasnewdata',['hasNewData',['../classamrex_1_1StateData.html#af9809e458fa0bd25965558bf3aa2c802',1,'amrex::StateData']]],
   ['hasolddata',['hasOldData',['../classamrex_1_1StateData.html#af94692a78b7f532f582acd48d9697443',1,'amrex::StateData']]],
   ['hasphysbndry',['HasPhysBndry',['../namespaceamrex.html#a948d5324e5cf514157eb7e16637e55b5',1,'amrex']]],
@@ -49,15 +50,15 @@ var searchData=
   ['htod_5fmemcpy_5fasync',['htod_memcpy_async',['../namespaceamrex_1_1Gpu.html#aacefe17a39734cb2475a36199ab1370b',1,'amrex::Gpu']]],
   ['hwm_5fbuilds',['hwm_builds',['../structamrex_1_1MemProfiler_1_1NBuildsInfo.html#ac85d7c7f2a90d5d1025386987ad4aaa5',1,'amrex::MemProfiler::NBuildsInfo']]],
   ['hwm_5fbytes',['hwm_bytes',['../structamrex_1_1MemProfiler_1_1MemInfo.html#a0986f22c847ee689a532d882351b7ee0',1,'amrex::MemProfiler::MemInfo']]],
-  ['hypre',['Hypre',['../classamrex_1_1Hypre.html',1,'amrex']]],
   ['hypre',['Hypre',['../classamrex_1_1Hypre.html#afd2d6c32022a99d96f73485d03272ec9',1,'amrex::Hypre::Hypre()'],['../namespaceamrex.html#a9303c93b47b7839de8ce552cb7cb21c4a9d87b5177c778e77c47e29f2b536cd1b',1,'amrex::hypre()']]],
+  ['hypre',['Hypre',['../classamrex_1_1Hypre.html',1,'amrex']]],
   ['hypre_5fint',['hypre_int',['../namespaceamrex__hypre__fort__module.html#a37cff87c6ce6d7a323cb5165758c7623',1,'amrex_hypre_fort_module']]],
   ['hypreabeclap',['HypreABecLap',['../classamrex_1_1HypreABecLap.html#ad89a45864775721cb3101273d111965f',1,'amrex::HypreABecLap']]],
   ['hypreabeclap',['HypreABecLap',['../classamrex_1_1HypreABecLap.html',1,'amrex']]],
   ['hypreabeclap2',['HypreABecLap2',['../classamrex_1_1HypreABecLap2.html',1,'amrex']]],
   ['hypreabeclap2',['HypreABecLap2',['../classamrex_1_1HypreABecLap2.html#aa79f49e5c3aa20259c177558228f79e4',1,'amrex::HypreABecLap2']]],
-  ['hypreabeclap3',['HypreABecLap3',['../classamrex_1_1HypreABecLap3.html',1,'amrex']]],
   ['hypreabeclap3',['HypreABecLap3',['../classamrex_1_1HypreABecLap3.html#ad31441f42c87ea482414f4980f3df626',1,'amrex::HypreABecLap3']]],
-  ['hyprenodelap',['HypreNodeLap',['../classamrex_1_1HypreNodeLap.html',1,'amrex']]],
-  ['hyprenodelap',['HypreNodeLap',['../classamrex_1_1HypreNodeLap.html#a37afff718417564419d2804e054cdf85',1,'amrex::HypreNodeLap']]]
+  ['hypreabeclap3',['HypreABecLap3',['../classamrex_1_1HypreABecLap3.html',1,'amrex']]],
+  ['hyprenodelap',['HypreNodeLap',['../classamrex_1_1HypreNodeLap.html#a37afff718417564419d2804e054cdf85',1,'amrex::HypreNodeLap']]],
+  ['hyprenodelap',['HypreNodeLap',['../classamrex_1_1HypreNodeLap.html',1,'amrex']]]
 ];

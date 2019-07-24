@@ -175,6 +175,7 @@ var searchData=
   ['m_5fhas_5ffine_5fbndry',['m_has_fine_bndry',['../classamrex_1_1MLNodeLinOp.html#a76a73246b9e7679b93591f2093a857c3',1,'amrex::MLNodeLinOp']]],
   ['m_5fhas_5fkappa',['m_has_kappa',['../classamrex_1_1MLEBTensorOp.html#a1ac24f61712e93b25ebcd55639f30ce2',1,'amrex::MLEBTensorOp::m_has_kappa()'],['../classamrex_1_1MLTensorOp.html#a0aebce2114e6c519b7648b87daceeb11',1,'amrex::MLTensorOp::m_has_kappa()']]],
   ['m_5fhas_5fmetric_5fterm',['m_has_metric_term',['../classamrex_1_1MLCellLinOp.html#a9d6cdade5abfabf340b180cba282c3c1',1,'amrex::MLCellLinOp']]],
+  ['m_5fhas_5fneighbors',['m_has_neighbors',['../classamrex_1_1NeighborParticleContainer.html#a7b705eb7801619d0a8297bd6633abd75',1,'amrex::NeighborParticleContainer']]],
   ['m_5fhdr',['m_hdr',['../classamrex_1_1VisMF.html#a8b04406fcfdbec77eba187d3ceb9b2dc',1,'amrex::VisMF']]],
   ['m_5fhead',['m_head',['../structamrex_1_1VisMF_1_1FabOnDisk.html#a68d4cccbd85458c853c811b3502a6988',1,'amrex::VisMF::FabOnDisk']]],
   ['m_5fheight',['m_height',['../classamrex_1_1EB2_1_1CylinderIF.html#ac76b57e5f88b041a0369fc7a8c5026f7',1,'amrex::EB2::CylinderIF']]],

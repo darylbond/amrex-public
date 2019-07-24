@@ -142,19 +142,19 @@
     <detaileddescription>
     </detaileddescription>
     <collaborationgraph>
-      <node id="5834">
+      <node id="5837">
         <label>amrex::Vector&lt; int &gt;</label>
         <link refid="classamrex_1_1Vector"/>
-        <childnode refid="5835" relation="public-inheritance">
+        <childnode refid="5838" relation="public-inheritance">
         </childnode>
       </node>
-      <node id="5835">
+      <node id="5838">
         <label>std::vector&lt; int, std::allocator&lt; int &gt; &gt;</label>
       </node>
-      <node id="5833">
+      <node id="5836">
         <label>amrex::DistributionMapping::Ref</label>
         <link refid="structamrex_1_1DistributionMapping_1_1Ref"/>
-        <childnode refid="5834" relation="usage">
+        <childnode refid="5837" relation="usage">
           <edgelabel>m_index_array</edgelabel>
           <edgelabel>m_pmap</edgelabel>
         </childnode>

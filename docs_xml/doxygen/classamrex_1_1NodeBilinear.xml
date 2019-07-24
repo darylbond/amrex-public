@@ -249,25 +249,25 @@
     <detaileddescription>
 <para>Bilinear interpolation on node centered data. </para>    </detaileddescription>
     <inheritancegraph>
-      <node id="5505">
+      <node id="5508">
         <label>amrex::NodeBilinear</label>
         <link refid="classamrex_1_1NodeBilinear"/>
-        <childnode refid="5506" relation="public-inheritance">
+        <childnode refid="5509" relation="public-inheritance">
         </childnode>
       </node>
-      <node id="5506">
+      <node id="5509">
         <label>amrex::Interpolater</label>
         <link refid="classamrex_1_1Interpolater"/>
       </node>
     </inheritancegraph>
     <collaborationgraph>
-      <node id="5507">
+      <node id="5510">
         <label>amrex::NodeBilinear</label>
         <link refid="classamrex_1_1NodeBilinear"/>
-        <childnode refid="5508" relation="public-inheritance">
+        <childnode refid="5511" relation="public-inheritance">
         </childnode>
       </node>
-      <node id="5508">
+      <node id="5511">
         <label>amrex::Interpolater</label>
         <link refid="classamrex_1_1Interpolater"/>
       </node>

@@ -175,6 +175,7 @@
     <innerclass refid="classamrex_1_1MultiGrid" prot="public">amrex::MultiGrid</innerclass>
     <innerclass refid="classamrex_1_1MultiMask" prot="public">amrex::MultiMask</innerclass>
     <innerclass refid="classamrex_1_1MultiMaskIter" prot="public">amrex::MultiMaskIter</innerclass>
+    <innerclass refid="structamrex_1_1NeighborCode" prot="public">amrex::NeighborCode</innerclass>
     <innerclass refid="structamrex_1_1NeighborData" prot="public">amrex::NeighborData</innerclass>
     <innerclass refid="classamrex_1_1NeighborList" prot="public">amrex::NeighborList</innerclass>
     <innerclass refid="classamrex_1_1NeighborParticleContainer" prot="public">amrex::NeighborParticleContainer</innerclass>

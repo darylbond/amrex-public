@@ -157,13 +157,13 @@
     <detaileddescription>
     </detaileddescription>
     <collaborationgraph>
-      <node id="6048">
+      <node id="6051">
         <label>Real</label>
       </node>
-      <node id="6047">
+      <node id="6050">
         <label>BLProfStats::TimeRange</label>
         <link refid="structBLProfStats_1_1TimeRange"/>
-        <childnode refid="6048" relation="usage">
+        <childnode refid="6051" relation="usage">
           <edgelabel>stopTime</edgelabel>
           <edgelabel>startTime</edgelabel>
         </childnode>

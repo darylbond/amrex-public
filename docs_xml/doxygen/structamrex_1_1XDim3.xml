@@ -49,13 +49,13 @@
     <detaileddescription>
     </detaileddescription>
     <collaborationgraph>
-      <node id="6154">
+      <node id="6157">
         <label>Real</label>
       </node>
-      <node id="6153">
+      <node id="6156">
         <label>amrex::XDim3</label>
         <link refid="structamrex_1_1XDim3"/>
-        <childnode refid="6154" relation="usage">
+        <childnode refid="6157" relation="usage">
           <edgelabel>x</edgelabel>
           <edgelabel>y</edgelabel>
           <edgelabel>z</edgelabel>
